@@ -2,7 +2,6 @@ package org.knullci.knull.domain.model;
 
 import java.util.Collection;
 
-import org.knullci.knull.persistence.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -16,7 +15,6 @@ public class KnullUserDetails implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

@@ -1,7 +1,7 @@
 package org.knullci.knull.persistence.config;
 
 import org.knullci.knull.persistence.entity.User;
-import org.knullci.knull.persistence.repository.UserRepository;
+import org.knullci.knull.persistence.repository.JpaUserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 	
-	private final UserRepository userRepository;
+	private final JpaUserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 	
 	@Override

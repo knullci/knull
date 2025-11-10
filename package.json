@@ -1,0 +1,29 @@
+{
+  "name": "knull",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev-css": "tailwindcss -i src/main/resources/static/css/tailwind-input.css -o src/main/resources/static/css/main.css --watch",
+    "build-css": "tailwindcss -i src/main/resources/static/css/tailwind-input.css -o src/main/resources/static/css/main.css --minify"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepakraj5/knull-ci-cd.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/deepakraj5/knull-ci-cd/issues"
+  },
+  "homepage": "https://github.com/deepakraj5/knull-ci-cd#readme",
+  "description": "",
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.17"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.17"
+  }
+}

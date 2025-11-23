@@ -47,7 +47,7 @@ public class JobRepositoryImpl implements JobRepository {
     public void saveJob(Job job) {
         var _job = JobMapper.toEntity(job);
         _job.setId(this.knullRepository.getNextFileId());
-        this.knullRepository.save(_job.getId() + ".json", _job);
+        this.knullRepository.save(_job.getId().toString(), _job);
         logger.info("Saved new job");
     }
 

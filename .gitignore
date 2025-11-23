@@ -34,3 +34,5 @@ build/
 .vscode/
 
 node_modules
+
+/storage

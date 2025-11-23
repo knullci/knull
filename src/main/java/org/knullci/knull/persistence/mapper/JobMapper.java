@@ -11,10 +11,10 @@ public class JobMapper {
         _job.setDescription(job.getDescription());
         _job.setJobType(JobType.valueOf(job.getJobType().name()));
         _job.setJobConfig(JobConfigMapper.toEntity(job.getJobConfig()));
-        _job.setCreateAt(job.getCreateAt());
-        _job.setCreatedBy(UserMapper.toEntity(job.getCreatedBy()));
-        _job.setModifiedAt(job.getModifiedAt());
-        _job.setModifiedBy(UserMapper.toEntity(job.getModifiedBy()));
+//        _job.setCreateAt(job.getCreateAt());
+//        _job.setCreatedBy(UserMapper.toEntity(job.getCreatedBy()));
+//        _job.setModifiedAt(job.getModifiedAt());
+//        _job.setModifiedBy(UserMapper.toEntity(job.getModifiedBy()));
 
         return _job;
     }

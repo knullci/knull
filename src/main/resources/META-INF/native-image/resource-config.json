@@ -1,0 +1,18 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": "\\Qtemplates/\\E.*"
+      },
+      {
+        "pattern": "\\Qstatic/\\E.*"
+      },
+      {
+        "pattern": "\\Qapplication.properties\\E"
+      },
+      {
+        "pattern": "\\Qcss/\\E.*"
+      }
+    ]
+  }
+}

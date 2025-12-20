@@ -1,26 +1,25 @@
-package org.knullci.knull.application.command;
+package org.knullci.knull.application.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.knullci.knull.domain.enums.JobType;
 
-@Getter
+import java.util.Date;
+
 @AllArgsConstructor
-public class CreateJobCommand {
+@Getter
+public class JobDetailDto {
+    private Long id;
     private String name;
     private String description;
     private JobType jobType;
     
-    // Job Config fields
+    // Job Config details
     private String gitRepository;
-    private Long credentialId;
-    
-    // Simple Job Config fields
+    private String credentialName;
     private String branch;
-    
-    // Multi Branch Job Config fields
     private String branchPattern;
-    
-    // Common field for both types
     private String scriptFileLocation;
+    
+    private Date createdAt;
 }

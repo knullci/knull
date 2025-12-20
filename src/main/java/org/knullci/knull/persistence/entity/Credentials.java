@@ -21,6 +21,11 @@ public class Credentials {
     private String description;
 
     private CredentialType credentialType;
+    
+    // Credential data - only one will be populated based on credentialType
+    private UsernamePasswordCredential usernamePasswordCredential;
+    
+    private TokenCredential tokenCredential;
 
     private User createdBy;
 

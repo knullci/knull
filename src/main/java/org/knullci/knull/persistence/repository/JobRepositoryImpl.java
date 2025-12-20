@@ -39,7 +39,7 @@ public class JobRepositoryImpl implements JobRepository {
     @Override
     public Optional<Job> getJobId(Long jobId) {
         logger.info("Fetching job by id: {}", jobId);
-        return Optional.ofNullable(this.knullRepository.getByFileName(jobId.toString()))
+        return Optional.ofNullable(this.knullRepository.getByFileName(jobId.toString() + ".json"))
                 .map(JobMapper::fromEntity);
     }
 

@@ -9,6 +9,7 @@ public class UserMapper {
     }
 
     public static org.knullci.knull.persistence.entity.User toEntity(User user) {
+        if (user == null) return null;
         var _user = new org.knullci.knull.persistence.entity.User();
         _user.setId(user.getId());
         _user.setUsername(user.getUsername());

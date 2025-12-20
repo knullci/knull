@@ -39,7 +39,7 @@ public class CredentialRepositoryImpl implements CredentialRepository {
     @Override
     public Optional<Credentials> findById(Long id) {
         logger.info("Fetching credential by id: {}", id);
-        return Optional.ofNullable(this.knullRepository.getByFileName(id.toString()))
+        return Optional.ofNullable(this.knullRepository.getByFileName(id.toString() + ".json"))
                 .map(CredentialsMapper::fromEntity);
     }
 
@@ -54,7 +54,7 @@ public class CredentialRepositoryImpl implements CredentialRepository {
 
     @Override
     public void deleteById(Long id) {
-        this.knullRepository.deleteByFileName(id.toString());
+        this.knullRepository.deleteByFileName(id.toString() + ".json");
         logger.info("Deleted credential with id: {}", id);
     }
 }

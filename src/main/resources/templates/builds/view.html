@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="'Build #' + ${build.id} + ' - Knull CI'">Build Details</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <style>
+        .build-section { display: none; }
+        .build-section.active { display: block; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800" th:with="section=${activeSection} ?: 'overview'" th:attr="data-build-status=${build.status.name()}">
+
+    <!-- Page Container (dedicated layout: no main nav) -->
+    <div class="flex min-h-screen gap-0">
+        <!-- Build Detail Side Navigation -->
+        <div class="w-56 bg-white border-r border-gray-200 fixed left-0 top-0 bottom-0 pt-6 overflow-y-auto">
+            <!-- Logo -->
+            <div class="px-6 pb-5 border-b border-gray-200 flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M3 5a2 2 0 012-2h7v6H3V5zM3 11h9v6H5a2 2 0 01-2-2v-4zM14 3h5a2 2 0 012 2v4h-7V3zM14 11h7v4a2 2 0 01-2 2h-5v-6z"/>
+                </svg>
+                <span class="text-xl font-bold tracking-wide text-gray-900">KnullCI</span>
+            </div>
+
+            <!-- Build Header in Sidebar -->
+            <div class="px-6 pb-6 border-b border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900 mb-3">Build <span th:text="${build.id}"></span></h3>
+                <span class="build-status-badge inline-block px-2.5 py-1 text-xs font-semibold rounded-full"
+                      th:text="${build.status.name() == 'SUCCESS' ? '✓ Success' : (build.status.name() == 'FAILURE' ? '✗ Failed' : (build.status.name() == 'IN_PROGRESS' ? '⟳ In Progress' : (build.status.name() == 'PENDING' ? '○ Pending' : '⊘ Skipped')))}"
+                      th:classappend="${build.status.name() == 'SUCCESS' ? ' bg-green-100 text-green-800' : (build.status.name() == 'FAILURE' ? ' bg-red-100 text-red-800' : (build.status.name() == 'IN_PROGRESS' ? ' bg-blue-100 text-blue-800' : (build.status.name() == 'PENDING' ? ' bg-yellow-100 text-yellow-800' : ' bg-gray-100 text-gray-800')))}"></span>
+            </div>
+
+            <!-- Side Navigation -->
+            <nav class="px-3 py-4 space-y-1 border-b border-gray-200" aria-label="Build sections">
+                <a th:href="@{|/builds/${build.id}/overview|}" class="w-full block px-4 py-3 text-sm font-medium rounded-lg transition-colors"
+                   th:classappend="${section == 'overview'} ? ' bg-indigo-50 text-indigo-700' : ' text-gray-600 hover:text-gray-900 hover:bg-gray-100'">
+                    🏠 Overview
+                </a>
+                <a th:href="@{|/builds/${build.id}/steps|}" class="w-full block px-4 py-3 text-sm font-medium rounded-lg transition-colors"
+                   th:classappend="${section == 'steps'} ? ' bg-indigo-50 text-indigo-700' : ' text-gray-600 hover:text-gray-900 hover:bg-gray-100'">
+                    🧩 Build Steps
+                </a>
+                <a th:href="@{|/builds/${build.id}/logs|}" class="w-full block px-4 py-3 text-sm font-medium rounded-lg transition-colors"
+                   th:classappend="${section == 'logs'} ? ' bg-indigo-50 text-indigo-700' : ' text-gray-600 hover:text-gray-900 hover:bg-gray-100'">
+                    📝 Full Logs
+                </a>
+            </nav>
+
+            <!-- Build Metadata -->
+            <div class="px-6 py-4 border-t border-gray-200 mt-6">
+                <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Details</h4>
+                <dl class="space-y-3">
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500">Repository</dt>
+                        <dd class="text-sm text-gray-900 truncate" th:title="${build.repositoryOwner + '/' + build.repositoryName}" 
+                            th:text="${build.repositoryOwner + '/' + build.repositoryName}"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500">Branch</dt>
+                        <dd class="text-sm text-gray-900 truncate" th:title="${build.branch}" th:text="${build.branch}"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500">Commit</dt>
+                        <dd class="text-xs font-mono text-gray-900 truncate" th:title="${build.commitSha}" 
+                            th:text="${#strings.substring(build.commitSha, 0, 7)}"></dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="px-6 py-4 border-t border-gray-200">
+                <a th:href="@{/builds}" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
+                    ← Back to Builds
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 ml-56">
+            <!-- Sticky Header -->
+            <div class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+                <div class="px-8 py-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="flex items-center gap-3">
+                                  <h1 class="text-3xl font-bold text-gray-900" th:text="'Build #' + ${build.id}"></h1>
+                                  <span id="build-status-badge" class="build-status-badge px-3 py-1 text-sm font-semibold rounded-full"
+                                      th:text="${build.status.name() == 'SUCCESS' ? '✓ Success' : (build.status.name() == 'FAILURE' ? '✗ Failed' : (build.status.name() == 'IN_PROGRESS' ? '⟳ In Progress' : build.status.name()))}"
+                                      th:classappend="${build.status.name() == 'SUCCESS' ? ' bg-green-100 text-green-800' : (build.status.name() == 'FAILURE' ? ' bg-red-100 text-red-800' : (build.status.name() == 'IN_PROGRESS' ? ' bg-blue-100 text-blue-800' : ' bg-gray-100 text-gray-800'))}">
+                                </span>
+                            </div>
+                            <p class="text-gray-600 text-sm mt-2" th:text="${build.jobName}"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page Content -->
+            <div class="p-8">
+                <div class="max-w-5xl">
+                
+                <!-- Breadcrumbs -->
+                <nav class="text-sm text-gray-500 flex items-center gap-2 mb-6" aria-label="Breadcrumb">
+                    <a th:href="@{/}" class="hover:text-gray-700">Home</a>
+                    <span class="text-gray-400">/</span>
+                    <a th:href="@{/builds}" class="hover:text-gray-700">Builds</a>
+                    <span class="text-gray-400">/</span>
+                    <a th:href="@{|/builds/${build.id}/overview|}" class="hover:text-gray-700" th:text="'Build #' + ${build.id}"></a>
+                    <span class="text-gray-400">/</span>
+                    <span class="text-gray-700 font-medium" th:text="${section == 'overview'} ? 'Overview' : (${section == 'steps'} ? 'Build Steps' : (${section == 'logs'} ? 'Full Logs' : 'Pipeline'))"></span>
+                </nav>
+
+                <!-- Pipeline Section -->
+                <section id="pipeline" class="build-section" th:classappend="${section == 'pipeline'} ? ' active' : ''">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Pipeline</h2>
+
+                    <div th:if="${build.steps != null && !build.steps.empty}">
+                            <!-- Compact summary -->
+                            <div class="bg-white rounded-lg border border-gray-200 p-6 shadow-sm mb-6" 
+                             th:with="success=${#lists.size(build.steps.?[status.name() == 'SUCCESS'])},
+                                       failed=${#lists.size(build.steps.?[status.name() == 'FAILURE'])},
+                                       running=${#lists.size(build.steps.?[status.name() == 'IN_PROGRESS'])},
+                                       pending=${#lists.size(build.steps.?[status.name() == 'PENDING'])},
+                                       total=${build.steps.size()}" >
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="space-y-1">
+                                    <p class="text-sm text-gray-600">Stage summary</p>
+                                    <p class="text-lg font-semibold text-gray-900" th:text="${total} + ' stages'"></p>
+                                </div>
+                                <div class="flex items-center gap-3 text-sm">
+                                    <span class="px-2 py-1 rounded-full bg-green-100 text-green-800" th:text="'Success ' + ${success}"></span>
+                                    <span class="px-2 py-1 rounded-full bg-red-100 text-red-800" th:text="'Failed ' + ${failed}"></span>
+                                    <span class="px-2 py-1 rounded-full bg-blue-100 text-blue-800" th:text="'Running ' + ${running}"></span>
+                                    <span class="px-2 py-1 rounded-full bg-gray-100 text-gray-800" th:text="'Pending ' + ${pending}"></span>
+                                </div>
+                            </div>
+
+                            <!-- Horizontal pipeline rail (single row, scrollable) -->
+                            <div class="relative overflow-x-auto pb-4">
+                                <div class="flex items-center gap-4 flex-nowrap min-w-max" th:each="step, iter : ${build.steps}">
+                                    <div class="flex items-center gap-3 min-w-[160px]">
+                                        <div class="h-6 w-6 rounded-full border-2 shadow-sm"
+                                             th:classappend="${step.status.name() == 'SUCCESS'} ? ' border-green-500 bg-green-500' :
+                                                            (${step.status.name() == 'FAILURE'} ? ' border-red-500 bg-red-500' :
+                                                            (${step.status.name() == 'IN_PROGRESS'} ? ' border-blue-500 bg-blue-500 animate-pulse' : ' border-gray-300 bg-white'))">
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-semibold text-gray-900" th:text="${step.name}"></p>
+                                            <p class="text-xs text-gray-500" th:text="${step.duration != null} ? ${step.duration / 1000.0} + 's' : 'pending'"></p>
+                                        </div>
+                                    </div>
+                                    <div class="h-0.5 w-16" th:if="${!iter.last}"
+                                         th:classappend="${step.status.name() == 'FAILURE'} ? ' bg-red-200' :
+                                                         (${step.status.name() == 'IN_PROGRESS'} ? ' bg-blue-200' : ' bg-gray-200')"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Compact stage list (no logs) -->
+                        <div class="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100 shadow-sm">
+                            <div class="p-4 flex text-sm font-semibold text-gray-500">
+                                <div class="w-8"></div>
+                                <div class="flex-1">Stage</div>
+                                <div class="w-32 text-right">Status</div>
+                                <div class="w-24 text-right">Duration</div>
+                            </div>
+                            <div th:each="step, iterStat : ${build.steps}" class="p-4 flex items-center text-sm">
+                                <div class="w-8">
+                                    <span class="w-7 h-7 rounded-full flex items-center justify-center font-semibold"
+                                          th:classappend="${step.status.name() == 'SUCCESS'} ? ' bg-green-100 text-green-800' :
+                                                        (${step.status.name() == 'FAILURE'} ? ' bg-red-100 text-red-800' :
+                                                        (${step.status.name() == 'IN_PROGRESS'} ? ' bg-blue-100 text-blue-800' : ' bg-gray-100 text-gray-800'))"
+                                          th:text="${iterStat.count}"></span>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-semibold text-gray-900" th:text="${step.name}"></p>
+                                </div>
+                                <div class="w-32 text-right">
+                                    <span th:if="${step.status.name() == 'SUCCESS'}" class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Success</span>
+                                    <span th:if="${step.status.name() == 'FAILURE'}" class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Failed</span>
+                                    <span th:if="${step.status.name() == 'IN_PROGRESS'}" class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Running</span>
+                                    <span th:if="${step.status.name() == 'PENDING'}" class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Pending</span>
+                                    <span th:if="${step.status.name() == 'SKIPPED'}" class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Skipped</span>
+                                </div>
+                                <div class="w-24 text-right text-gray-700" th:text="${step.duration != null} ? ${step.duration / 1000.0} + 's' : '-'">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${build.steps == null || build.steps.empty}" class="bg-white rounded-lg border border-gray-200 text-center py-12 text-gray-500">
+                        <p class="text-lg">No pipeline data available</p>
+                    </div>
+                </section>
+                
+                <!-- Overview Section -->
+                <section id="overview" class="build-section" th:classappend="${section == 'overview'} ? ' active' : ''">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Build Overview</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Repository Information</h3>
+                            <dl class="space-y-4">
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Repository</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 font-mono" th:text="${build.repositoryOwner + '/' + build.repositoryName}"></dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Branch</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 font-mono" th:text="${build.branch}"></dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Commit SHA</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 font-mono font-bold" th:text="${build.commitSha}"></dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Commit Message</dt>
+                                    <dd class="mt-1 text-sm text-gray-900" th:text="${build.commitMessage}"></dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Execution Timeline</h3>
+                            <dl class="space-y-4">
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Triggered By</dt>
+                                    <dd class="mt-1 text-sm text-gray-900" th:text="${build.triggeredBy}"></dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Started At</dt>
+                                    <dd class="mt-1 text-sm text-gray-900" th:text="${#dates.format(build.startedAt, 'MMM dd, yyyy HH:mm:ss')}"></dd>
+                                </div>
+                                <div th:if="${build.completedAt != null}">
+                                    <dt class="text-sm font-medium text-gray-500">Completed At</dt>
+                                    <dd class="mt-1 text-sm text-gray-900" th:text="${#dates.format(build.completedAt, 'MMM dd, yyyy HH:mm:ss')}"></dd>
+                                </div>
+                                <div th:if="${build.duration != null}">
+                                    <dt class="text-sm font-medium text-gray-500">Total Duration</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 font-semibold text-blue-600" th:text="${build.duration / 1000.0} + ' seconds'"></dd>
+                                </div>
+                            </dl>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Build Steps Section -->
+                <section id="steps" class="build-section" th:classappend="${section == 'steps'} ? ' active' : ''">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Build Steps</h2>
+                    
+                    <div th:if="${build.steps != null && !build.steps.empty}">
+                        <div class="space-y-3">
+                                                        <div th:each="step, iterStat : ${build.steps}" class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow" th:attr="data-step-index=${iterStat.index}">
+                                                                <div class="p-4 flex items-center justify-between border-b border-gray-100">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-lg font-semibold text-gray-900 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100" 
+                                              th:text="${iterStat.count}"></span>
+                                        <span class="text-lg font-semibold text-gray-900" th:text="${step.name}"></span>
+                                                                                    <span class="step-status-badge px-2.5 py-0.5 text-xs font-semibold rounded-full"
+                                                                                        th:text="${step.status.name() == 'SUCCESS' ? '✓ Success' : (step.status.name() == 'FAILURE' ? '✗ Failed' : (step.status.name() == 'IN_PROGRESS' ? '⟳ In Progress' : (step.status.name() == 'PENDING' ? '○ Pending' : '⊘ Skipped')))}"
+                                                                                        th:classappend="${step.status.name() == 'SUCCESS' ? ' bg-green-100 text-green-800' :
+                                                                                                 (step.status.name() == 'FAILURE' ? ' bg-red-100 text-red-800' :
+                                                                                                 (step.status.name() == 'IN_PROGRESS' ? ' bg-blue-100 text-blue-800' :
+                                                                                                 (step.status.name() == 'PENDING' ? ' bg-yellow-100 text-yellow-800' : ' bg-gray-100 text-gray-800')))}">
+                                                                                </span>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-500" th:if="${step.duration != null}" 
+                                          th:text="${step.duration / 1000.0} + 's'"></span>
+                                </div>
+                                
+                                <!-- Step Output -->
+                                <div th:if="${step.output != null && !step.output.isEmpty()}" class="p-4 bg-gray-50">
+                                    <div class="bg-gray-900 text-gray-100 p-4 rounded-lg text-xs font-mono overflow-x-auto max-h-64 overflow-y-auto border border-gray-700">
+                                        <pre th:text="${step.output}" class="whitespace-pre-wrap text-gray-100" th:attr="data-step-output-index=${iterStat.index}"></pre>
+                                    </div>
+                                </div>
+                                
+                                <!-- Error Message -->
+                                <div th:if="${step.errorMessage != null && !step.errorMessage.isEmpty()}" class="p-4 bg-red-50 border-t border-red-100">
+                                    <div class="bg-red-50 border border-red-200 text-red-800 p-3 rounded-lg text-sm">
+                                        <strong class="block mb-1">Error:</strong> <span th:text="${step.errorMessage}"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${build.steps == null || build.steps.empty}" class="bg-white rounded-lg border border-gray-200 text-center py-12 text-gray-500">
+                        <p class="text-lg">No build steps recorded</p>
+                    </div>
+                </section>
+
+                <!-- Full Logs Section -->
+                <section id="logs" class="build-section" th:classappend="${section == 'logs'} ? ' active' : ''">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Complete Build Log</h2>
+                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                        <div class="bg-gray-900 text-gray-100 p-6 font-mono text-sm overflow-x-auto max-h-[600px] overflow-y-auto">
+                            <pre id="build-log" th:text="${build.buildLog}" class="whitespace-pre-wrap text-gray-100">No logs available</pre>
+                        </div>
+                    </div>
+                </section>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const buildId = [[${build.id}]];
+        const pollIntervalMs = 1000;
+
+        let statusBadges = [];
+        const bodyEl = document.body;
+        let buildLogEl = null;
+
+        const terminalClasses = {
+            SUCCESS: 'bg-green-100 text-green-800',
+            FAILURE: 'bg-red-100 text-red-800',
+            IN_PROGRESS: 'bg-blue-100 text-blue-800',
+            PENDING: 'bg-gray-100 text-gray-800',
+            SKIPPED: 'bg-gray-100 text-gray-800'
+        };
+
+        function badgeText(status) {
+            switch (status) {
+                case 'SUCCESS': return '✓ Success';
+                case 'FAILURE': return '✗ Failed';
+                case 'IN_PROGRESS': return '⟳ In Progress';
+                case 'PENDING': return '○ Pending';
+                case 'SKIPPED': return '⊘ Skipped';
+                default: return status;
+            }
+        }
+
+        function clearStatusClasses(el) {
+            el.classList.remove('bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800', 'bg-blue-100', 'text-blue-800', 'bg-yellow-100', 'text-yellow-800', 'bg-gray-100', 'text-gray-800');
+        }
+
+        function getStatusName(s) {
+            if (!s) return '';
+            if (typeof s === 'string') return s;
+            if (typeof s === 'object' && s.name) return s.name;
+            return String(s);
+        }
+
+        function updateStatus(status) {
+            const statusName = getStatusName(status);
+            statusBadges.forEach((badge) => {
+                clearStatusClasses(badge);
+                badge.classList.add(...(terminalClasses[statusName]?.split(' ') || ['bg-gray-100', 'text-gray-800']));
+                badge.textContent = badgeText(statusName);
+            });
+            bodyEl.setAttribute('data-build-status', statusName);
+        }
+
+        function updateSteps(steps) {
+            if (!steps) return;
+            steps.forEach((step, idx) => {
+                const card = document.querySelector(`[data-step-index="${idx}"]`);
+                if (!card) return;
+                const badge = card.querySelector('.step-status-badge');
+                if (badge) {
+                    clearStatusClasses(badge);
+                    const s = getStatusName(step.status);
+                    const cls = terminalClasses[s] || 'bg-gray-100 text-gray-800';
+                    badge.classList.add(...cls.split(' '));
+                    badge.textContent = badgeText(s);
+                }
+
+                const durationEl = card.querySelector('.text-sm.font-medium.text-gray-500');
+                if (durationEl && step.duration != null) {
+                    durationEl.textContent = (step.duration / 1000).toFixed(1).replace(/\.0$/, '') + 's';
+                }
+
+                const outputPre = card.querySelector(`[data-step-output-index="${idx}"]`);
+                if (outputPre && step.output != null) {
+                    outputPre.textContent = step.output;
+                }
+            });
+        }
+
+        function updateLog(logText) {
+            if (buildLogEl && logText != null) {
+                const atBottom = Math.abs((buildLogEl.parentElement.scrollTop + buildLogEl.parentElement.clientHeight) - buildLogEl.parentElement.scrollHeight) < 10;
+                buildLogEl.textContent = logText;
+                if (atBottom) {
+                    buildLogEl.parentElement.scrollTop = buildLogEl.parentElement.scrollHeight;
+                }
+            }
+        }
+
+        async function poll() {
+            try {
+                const res = await fetch(`/builds/${buildId}/status`, { headers: { 'Accept': 'application/json' } });
+                if (!res.ok) return;
+                const build = await res.json();
+                onBuildUpdate(build);
+            } catch (err) {
+                console.error('Polling error', err);
+            }
+        }
+
+        let pollHandle = null;
+        function startPolling() {
+            if (!buildLogEl) buildLogEl = document.getElementById('build-log');
+            const current = bodyEl.getAttribute('data-build-status');
+            poll();
+            if (current === 'IN_PROGRESS' || current === 'PENDING') {
+                pollHandle = setInterval(poll, pollIntervalMs);
+            }
+        }
+
+        function onBuildUpdate(build) {
+            if (!build) return;
+            updateStatus(build.status);
+            updateSteps(build.steps || []);
+            updateLog(build.buildLog);
+
+            if (build.status !== 'IN_PROGRESS' && build.status !== 'PENDING') {
+                stopPolling();
+                closeSse();
+            }
+        }
+
+        let eventSource = null;
+        function startSse() {
+            statusBadges = Array.from(document.querySelectorAll('.build-status-badge'));
+            if (!buildLogEl) buildLogEl = document.getElementById('build-log');
+            if (!window.EventSource) {
+                startPolling();
+                return;
+            }
+            eventSource = new EventSource(`/builds/${buildId}/events`);
+            eventSource.onmessage = (event) => {
+                try {
+                    const build = JSON.parse(event.data);
+                    onBuildUpdate(build);
+                } catch (e) {
+                    console.error('SSE parse error', e);
+                }
+            };
+            eventSource.onerror = () => {
+                closeSse();
+                startPolling();
+            };
+        }
+
+        function closeSse() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+        }
+
+        function stopPolling() {
+            if (pollHandle) {
+                clearInterval(pollHandle);
+                pollHandle = null;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', startSse);
+    </script>
+
+</body>
+</html>

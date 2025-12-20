@@ -14,6 +14,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -25,6 +26,12 @@ public class KnullProcessRunner implements ProcessRunner {
     public ProcessResult run(RunCommand run) {
         Command command = toCommand(run);
         return execute(command, Path.of("."), DEFAULT_TIMEOUT);
+    }
+
+    @Override
+    public ProcessResult run(RunCommand run, Path workingDirectory) {
+        Command command = toCommand(run);
+        return execute(command, workingDirectory, DEFAULT_TIMEOUT);
     }
 
     private Command toCommand(RunCommand run) {
@@ -58,8 +65,22 @@ public class KnullProcessRunner implements ProcessRunner {
             pb.directory(workingDir.toFile());
             pb.redirectErrorStream(false);
 
-            pb.environment().clear();
-            pb.environment().put("PATH", "/usr/bin:/bin");
+            // Inherit parent environment and extend it for security
+            Map<String, String> env = pb.environment();
+            // Ensure critical paths are available
+            String currentPath = env.get("PATH");
+            if (currentPath != null) {
+                // Add additional paths if not already present
+                if (!currentPath.contains("/usr/local/bin")) {
+                    env.put("PATH", "/usr/local/bin:" + currentPath);
+                }
+            } else {
+                env.put("PATH", "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin");
+            }
+            // Ensure HOME is set
+            if (!env.containsKey("HOME")) {
+                env.put("HOME", System.getProperty("user.home"));
+            }
 
             Process process = pb.start();
 

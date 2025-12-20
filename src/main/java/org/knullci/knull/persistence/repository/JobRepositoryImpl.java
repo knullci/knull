@@ -48,7 +48,13 @@ public class JobRepositoryImpl implements JobRepository {
         logger.info("Fetching job for repoName: {}", repoName);
         return this.knullRepository.getAll()
                 .stream()
-                .filter(job -> job.getJobConfig().getGitRepository().equalsIgnoreCase(repoName))
+                .filter(job -> {
+                    String gitRepo = job.getJobConfig().getGitRepository();
+                    // Extract repo name from URL (e.g., https://github.com/owner/repo.git -> repo)
+                    String extractedName = gitRepo.substring(gitRepo.lastIndexOf('/') + 1)
+                            .replace(".git", "");
+                    return extractedName.equalsIgnoreCase(repoName);
+                })
                 .findFirst()
                 .map(JobMapper::fromEntity);
     }

@@ -13,5 +13,7 @@ public class GithubWebhookRequestDto {
 
     @JsonProperty("head_commit")
     private GithubWebhookHeadCommit headCommit;
+    
+    private GithubWebhookSender sender;
 
 }

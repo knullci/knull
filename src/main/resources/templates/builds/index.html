@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Builds - Knull CI</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div th:replace="~{layout/navbar :: body}"></div>
+
+    <!-- Page Container -->
+    <div class="ml-64 p-8">
+        <div class="max-w-7xl mx-auto">
+            
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900">Build History</h1>
+                <p class="text-gray-600 mt-2">View all build executions</p>
+            </div>
+
+            <!-- Builds List -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div th:if="${builds != null && !builds.isEmpty()}">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Build #</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Commit</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Started</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr th:each="build : ${builds}">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-sm font-medium text-blue-600" th:text="'#' + ${build.id}"></span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900" th:text="${build.jobName}"></div>
+                                    <div class="text-sm text-gray-500" th:text="${build.repositoryOwner + '/' + build.repositoryName}"></div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-sm text-gray-900" th:text="${build.branch}"></span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900 font-mono" th:text="${#strings.substring(build.commitSha, 0, 7)}"></div>
+                                    <div class="text-xs text-gray-500 max-w-xs truncate" th:text="${build.commitMessage}"></div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span th:if="${build.status.name() == 'SUCCESS'}" 
+                                          class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Success
+                                    </span>
+                                    <span th:if="${build.status.name() == 'FAILURE'}" 
+                                          class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        Failure
+                                    </span>
+                                    <span th:if="${build.status.name() == 'IN_PROGRESS'}" 
+                                          class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        In Progress
+                                    </span>
+                                    <span th:if="${build.status.name() == 'PENDING'}" 
+                                          class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        Pending
+                                    </span>
+                                    <span th:if="${build.status.name() == 'CANCELLED'}" 
+                                          class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                        Cancelled
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <span th:if="${build.duration != null}" th:text="${build.duration / 1000} + 's'"></span>
+                                    <span th:unless="${build.duration != null}">-</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <span th:text="${#dates.format(build.startedAt, 'MMM dd, HH:mm')}"></span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <a th:href="@{/builds/{id}(id=${build.id})}" 
+                                       class="text-blue-600 hover:text-blue-900">View</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${builds == null || builds.isEmpty()}" class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">No builds yet</h3>
+                    <p class="mt-1 text-sm text-gray-500">Builds will appear here when jobs are triggered</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

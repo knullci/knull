@@ -17,4 +17,9 @@ public class SimpleJobConfig extends JobConfig {
         this.branch = branch;
         this.scriptFileLocation = scriptFileLocation;
     }
+    
+    @Override
+    public String getBuildScript() {
+        return scriptFileLocation;
+    }
 }

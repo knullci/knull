@@ -6,9 +6,11 @@ import org.knullci.knull.application.interfaces.CreateJobCommandHandler;
 import org.knullci.knull.application.interfaces.DeleteJobCommandHandler;
 import org.knullci.knull.application.interfaces.GetAllCredentialsQueryHandler;
 import org.knullci.knull.application.interfaces.GetAllQueryHandler;
+import org.knullci.knull.application.interfaces.GetBuildsByJobIdQueryHandler;
 import org.knullci.knull.application.interfaces.GetJobByIdQueryHandler;
 import org.knullci.knull.application.query.GetAllCredentialsQuery;
 import org.knullci.knull.application.query.GetAllJobQuery;
+import org.knullci.knull.application.query.GetBuildsByJobIdQuery;
 import org.knullci.knull.application.query.GetJobByIdQuery;
 import org.knullci.knull.domain.enums.JobType;
 import org.knullci.knull.web.dto.JobForm;
@@ -26,17 +28,20 @@ public class JobController {
     private final GetAllCredentialsQueryHandler getAllCredentialsQueryHandler;
     private final GetJobByIdQueryHandler getJobByIdQueryHandler;
     private final DeleteJobCommandHandler deleteJobCommandHandler;
+    private final GetBuildsByJobIdQueryHandler getBuildsByJobIdQueryHandler;
 
     public JobController(CreateJobCommandHandler createJobCommandHandler, 
                         GetAllQueryHandler getAllQueryHandler,
                         GetAllCredentialsQueryHandler getAllCredentialsQueryHandler,
                         GetJobByIdQueryHandler getJobByIdQueryHandler,
-                        DeleteJobCommandHandler deleteJobCommandHandler) {
+                        DeleteJobCommandHandler deleteJobCommandHandler,
+                        GetBuildsByJobIdQueryHandler getBuildsByJobIdQueryHandler) {
         this.createJobCommandHandler = createJobCommandHandler;
         this.getAllQueryHandler = getAllQueryHandler;
         this.getAllCredentialsQueryHandler = getAllCredentialsQueryHandler;
         this.getJobByIdQueryHandler = getJobByIdQueryHandler;
         this.deleteJobCommandHandler = deleteJobCommandHandler;
+        this.getBuildsByJobIdQueryHandler = getBuildsByJobIdQueryHandler;
     }
 
     @GetMapping("/create")

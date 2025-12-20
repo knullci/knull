@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class GithubWebhookHeadCommit {
-    private String id;
-    private String message;
+public class GithubWebhookSender {
+    private String login;
+    private String type;
 }

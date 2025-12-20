@@ -17,4 +17,9 @@ public class MultiBranchJobConfig extends JobConfig {
         this.branchPattern = branchPattern;
         this.scriptFileLocation = scriptFileLocation;
     }
+    
+    @Override
+    public String getBuildScript() {
+        return scriptFileLocation;
+    }
 }

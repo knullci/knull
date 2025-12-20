@@ -25,7 +25,12 @@ public class JsonKnullRepository<T> implements KnullRepository<T> {
     @Override
     @SneakyThrows
     public void save(String fileName, T object) {
-        mapper.writeValue(new File(directory + "/" + fileName + ".json"), object);
+        File target = new File(directory + "/" + fileName + ".json");
+        File parent = target.getParentFile();
+        if (parent != null && !parent.exists()) {
+            parent.mkdirs();
+        }
+        mapper.writeValue(target, object);
     }
 
     @Override

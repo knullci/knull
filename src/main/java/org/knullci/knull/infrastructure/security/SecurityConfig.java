@@ -2,7 +2,6 @@ package org.knullci.knull.infrastructure.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,9 +17,19 @@ public class SecurityConfig {
 		http.csrf(csrf -> csrf
 						.ignoringRequestMatchers("/api/v1/webhook/github"))
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/api/v1/webhook/github").permitAll()
+						.requestMatchers(
+								"/api/v1/webhook/github",
+								"/login",
+								"/css/**",
+								"/static/**",
+								"/images/**",
+								"/js/**"
+						).permitAll()
 						.anyRequest().authenticated())
-				.formLogin(Customizer.withDefaults());
+				.formLogin(form -> form
+						.loginPage("/login")
+						.permitAll()
+				);
 		
 		return http.build();
 	}

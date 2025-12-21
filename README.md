@@ -40,7 +40,7 @@ KnullCI
 
 - **Java 17+**
 - **Maven 3.8+**
-- **macOS / Linux** (tested on macOS)
+- **macOS / Linux / Windows** (tested on macOS)
 - **Git**
 - **GitHub Account** (for webhooks)
 

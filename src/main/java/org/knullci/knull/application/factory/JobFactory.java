@@ -15,36 +15,35 @@ import java.util.List;
 public class JobFactory {
     public static Job fromCommand(CreateJobCommand command, Credentials credentials) {
         JobConfig jobConfig = null;
-        
+
         if (command.getJobType() == JobType.SIMPLE) {
             jobConfig = new SimpleJobConfig(
-                null,
-                command.getGitRepository(),
-                credentials,
-                command.getBranch(),
-                command.getScriptFileLocation()
-            );
+                    null,
+                    command.getGitRepository(),
+                    credentials,
+                    command.getBranch(),
+                    command.getScriptFileLocation());
         } else if (command.getJobType() == JobType.MULTIBRANCH) {
             jobConfig = new MultiBranchJobConfig(
-                null,
-                command.getGitRepository(),
-                credentials,
-                command.getBranchPattern(),
-                command.getScriptFileLocation()
-            );
+                    null,
+                    command.getGitRepository(),
+                    credentials,
+                    command.getBranchPattern(),
+                    command.getScriptFileLocation());
         }
-        
+
         return new Job(
                 null,
                 command.getName(),
                 command.getDescription(),
                 command.getJobType(),
                 jobConfig,
+                command.isCleanupWorkspace(),
+                command.isCheckoutLatestCommit(),
                 null,
                 null,
                 null,
-                null
-        );
+                null);
     }
 
     public static JobDto toDto(Job job) {
@@ -52,38 +51,37 @@ public class JobFactory {
                 job.getId(),
                 job.getName(),
                 job.getDescription(),
-                job.getJobType()
-        );
+                job.getJobType());
     }
 
     public static List<JobDto> toDto(List<Job> jobs) {
         return jobs.stream().map(JobFactory::toDto).toList();
     }
-    
+
     public static JobDetailDto toDetailDto(Job job) {
         String gitRepository = null;
         String credentialName = null;
         String branch = null;
         String branchPattern = null;
         String scriptFileLocation = null;
-        
+
         if (job.getJobConfig() != null) {
             gitRepository = job.getJobConfig().getGitRepository();
             scriptFileLocation = job.getJobType() == JobType.SIMPLE
                     ? ((SimpleJobConfig) job.getJobConfig()).getScriptFileLocation()
                     : ((MultiBranchJobConfig) job.getJobConfig()).getScriptFileLocation();
-            
+
             if (job.getJobConfig().getCredentials() != null) {
                 credentialName = job.getJobConfig().getCredentials().getName();
             }
-            
+
             if (job.getJobType() == JobType.SIMPLE) {
                 branch = ((SimpleJobConfig) job.getJobConfig()).getBranch();
             } else if (job.getJobType() == JobType.MULTIBRANCH) {
                 branchPattern = ((MultiBranchJobConfig) job.getJobConfig()).getBranchPattern();
             }
         }
-        
+
         return new JobDetailDto(
                 job.getId(),
                 job.getName(),
@@ -94,7 +92,6 @@ public class JobFactory {
                 branch,
                 branchPattern,
                 scriptFileLocation,
-                job.getCreateAt()
-        );
+                job.getCreatedAt());
     }
 }

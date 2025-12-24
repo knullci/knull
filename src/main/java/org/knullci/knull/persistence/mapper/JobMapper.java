@@ -11,10 +11,12 @@ public class JobMapper {
         _job.setDescription(job.getDescription());
         _job.setJobType(JobType.valueOf(job.getJobType().name()));
         _job.setJobConfig(JobConfigMapper.toEntity(job.getJobConfig()));
-//        _job.setCreateAt(job.getCreateAt());
-//        _job.setCreatedBy(UserMapper.toEntity(job.getCreatedBy()));
-//        _job.setModifiedAt(job.getModifiedAt());
-//        _job.setModifiedBy(UserMapper.toEntity(job.getModifiedBy()));
+        _job.setCleanupWorkspace(job.isCleanupWorkspace());
+        _job.setCheckoutLatestCommit(job.isCheckoutLatestCommit());
+        // _job.setCreatedAt(job.getCreatedAt());
+        // _job.setCreatedBy(UserMapper.toEntity(job.getCreatedBy()));
+        // _job.setModifiedAt(job.getModifiedAt());
+        // _job.setModifiedBy(UserMapper.toEntity(job.getModifiedBy()));
 
         return _job;
     }
@@ -26,10 +28,11 @@ public class JobMapper {
                 job.getDescription(),
                 org.knullci.knull.domain.enums.JobType.valueOf(job.getJobType().name()),
                 JobConfigMapper.fromEntity(job.getJobConfig()),
+                Boolean.TRUE.equals(job.getCleanupWorkspace()),
+                Boolean.TRUE.equals(job.getCheckoutLatestCommit()),
                 UserMapper.fromEntity(job.getCreatedBy()),
-                job.getCreateAt(),
+                job.getCreatedAt(),
                 UserMapper.fromEntity(job.getModifiedBy()),
-                job.getModifiedAt()
-        );
+                job.getModifiedAt());
     }
 }

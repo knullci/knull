@@ -3,14 +3,10 @@ package org.knullci.knull.application.handler;
 import lombok.SneakyThrows;
 import org.knullci.knull.application.command.ExecuteBuildCommand;
 import org.knullci.knull.application.command.GithubWebhookCommand;
-import org.knullci.knull.application.constant.KnullConstant;
 import org.knullci.knull.application.dto.GithubWebhookResponseDto;
 import org.knullci.knull.application.interfaces.ExecuteBuildCommandHandler;
 import org.knullci.knull.application.interfaces.GithubWebhookCommandHandler;
 import org.knullci.knull.domain.repository.JobRepository;
-import org.knullci.knull.infrastructure.dto.UpdateCommitStatusDto;
-import org.knullci.knull.infrastructure.enums.GHCommitState;
-import org.knullci.knull.infrastructure.service.GithubService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,14 +16,11 @@ public class GithubWebhookCommandHandlerImpl implements GithubWebhookCommandHand
 
     private static final Logger logger = LoggerFactory.getLogger(GithubWebhookCommandHandlerImpl.class);
 
-    private final GithubService githubService;
     private final JobRepository jobRepository;
     private final ExecuteBuildCommandHandler executeBuildCommandHandler;
 
-    public GithubWebhookCommandHandlerImpl(GithubService githubService, 
-                                          JobRepository jobRepository,
-                                          ExecuteBuildCommandHandler executeBuildCommandHandler) {
-        this.githubService = githubService;
+    public GithubWebhookCommandHandlerImpl(JobRepository jobRepository,
+            ExecuteBuildCommandHandler executeBuildCommandHandler) {
         this.jobRepository = jobRepository;
         this.executeBuildCommandHandler = executeBuildCommandHandler;
     }
@@ -44,20 +37,9 @@ public class GithubWebhookCommandHandlerImpl implements GithubWebhookCommandHand
             return null;
         }
 
-        // update the commit status to PENDING
-        this.githubService.updateCommitStatus(new UpdateCommitStatusDto(
-                command.getGithubWebhook().getRepository().getOwner().getName(),
-                command.getGithubWebhook().getRepository().getName(),
-                command.getGithubWebhook().getHeadCommit().getId(),
-                GHCommitState.PENDING,
-                "http://localhost:8080/builds",
-                KnullConstant.BUILD_PENDING_DESCRIPTION,
-                KnullConstant.BUILD_CONTEXT
-        ));
-
         // Trigger build execution asynchronously
         logger.info("Triggering build for job: {} from repository: {}", job.get().getName(), repoName);
-        
+
         executeBuildCommandHandler.handle(new ExecuteBuildCommand(
                 job.get(),
                 command.getGithubWebhook().getHeadCommit().getId(),
@@ -66,8 +48,7 @@ public class GithubWebhookCommandHandlerImpl implements GithubWebhookCommandHand
                 command.getGithubWebhook().getRepository().getOwner().getName(),
                 command.getGithubWebhook().getRepository().getName(),
                 command.getGithubWebhook().getRepository().getHtmlUrl(),
-                command.getGithubWebhook().getSender().getLogin()
-        ));
+                command.getGithubWebhook().getSender().getLogin()));
 
         return null;
     }

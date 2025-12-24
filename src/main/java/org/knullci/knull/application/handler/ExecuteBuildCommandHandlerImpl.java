@@ -26,9 +26,9 @@ public class ExecuteBuildCommandHandlerImpl implements ExecuteBuildCommandHandle
     private final GithubService githubService;
     private final BuildExecutorService buildExecutorService;
 
-    public ExecuteBuildCommandHandlerImpl(BuildRepository buildRepository, 
-                                         GithubService githubService,
-                                         BuildExecutorService buildExecutorService) {
+    public ExecuteBuildCommandHandlerImpl(BuildRepository buildRepository,
+            GithubService githubService,
+            BuildExecutorService buildExecutorService) {
         this.buildRepository = buildRepository;
         this.githubService = githubService;
         this.buildExecutorService = buildExecutorService;
@@ -37,7 +37,7 @@ public class ExecuteBuildCommandHandlerImpl implements ExecuteBuildCommandHandle
     @Override
     @Async
     public void handle(ExecuteBuildCommand command) {
-        logger.info("Starting build execution for job: {}, commit: {}", 
+        logger.info("Starting build execution for job: {}, commit: {}",
                 command.getJob().getName(), command.getCommitSha());
 
         // Create build record
@@ -66,14 +66,13 @@ public class ExecuteBuildCommandHandlerImpl implements ExecuteBuildCommandHandle
                 GHCommitState.PENDING,
                 "http://localhost:8080/builds/" + build.getId(),
                 "Build #" + build.getId() + " is in progress...",
-                KnullConstant.BUILD_CONTEXT
-        ));
+                KnullConstant.BUILD_CONTEXT));
 
         try {
             // Execute the build using BuildExecutorService
             logger.info("Executing build for job: {}", command.getJob().getName());
-            buildExecutorService.executeBuild(build, command.getJob().getJobConfig());
-            
+            buildExecutorService.executeBuild(build, command.getJob());
+
             // Consolidate build logs from steps
             StringBuilder consolidatedLog = new StringBuilder(build.getBuildLog());
             build.getSteps().forEach(step -> {
@@ -102,8 +101,7 @@ public class ExecuteBuildCommandHandlerImpl implements ExecuteBuildCommandHandle
                     GHCommitState.SUCCESS,
                     "http://localhost:8080/builds/" + build.getId(),
                     "Build #" + build.getId() + " passed",
-                    KnullConstant.BUILD_CONTEXT
-            ));
+                    KnullConstant.BUILD_CONTEXT));
 
             logger.info("Build {} completed successfully", build.getId());
 
@@ -138,8 +136,7 @@ public class ExecuteBuildCommandHandlerImpl implements ExecuteBuildCommandHandle
                     GHCommitState.FAILURE,
                     "http://localhost:8080/builds/" + build.getId(),
                     "Build #" + build.getId() + " failed",
-                    KnullConstant.BUILD_CONTEXT
-            ));
+                    KnullConstant.BUILD_CONTEXT));
         }
     }
 }

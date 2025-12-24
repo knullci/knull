@@ -24,9 +24,13 @@ public class Job {
 
     private JobConfig jobConfig;
 
+    private Boolean cleanupWorkspace = false;
+
+    private Boolean checkoutLatestCommit = true;
+
     private User createdBy;
 
-    private Date createAt;
+    private Date createdAt;
 
     private User modifiedBy;
 

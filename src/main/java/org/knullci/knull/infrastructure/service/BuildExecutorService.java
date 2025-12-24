@@ -1,11 +1,11 @@
 package org.knullci.knull.infrastructure.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.knullci.knull.domain.enums.BuildStepStatus;
 import org.knullci.knull.domain.model.Build;
 import org.knullci.knull.domain.model.BuildStep;
 import org.knullci.knull.domain.model.Credentials;
+import org.knullci.knull.domain.model.Job;
 import org.knullci.knull.domain.model.JobConfig;
 import org.knullci.knull.domain.repository.BuildRepository;
 import org.knullci.knull.domain.repository.CredentialRepository;
@@ -25,7 +25,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 @Service
 public class BuildExecutorService {
@@ -50,10 +49,11 @@ public class BuildExecutorService {
         this.yamlObjectMapper = yamlObjectMapper;
     }
 
-    public void executeBuild(Build build, JobConfig jobConfig) {
+    public void executeBuild(Build build, Job job) {
         logger.info("Starting build execution for build ID: {}", build.getId());
 
         String workspaceDir = WORKSPACE_BASE + "/build-" + build.getId();
+        JobConfig jobConfig = job.getJobConfig();
 
         try {
             // Step 1: Prepare workspace
@@ -67,7 +67,9 @@ public class BuildExecutorService {
             executeStep(build, "Checkout Branch", () -> checkoutBranch(build, workspaceDir));
 
             // Step 4: Checkout specific commit
-            executeStep(build, "Checkout Commit", () -> checkoutCommit(build, workspaceDir));
+            if (!job.isCheckoutLatestCommit()) {
+                executeStep(build, "Checkout Commit", () -> checkoutCommit(build, workspaceDir));
+            }
 
             // Step 5: Execute build script
             executeStep(build, "Execute Build Script", () -> executeBuildScript(build, jobConfig, workspaceDir));
@@ -80,7 +82,9 @@ public class BuildExecutorService {
         } finally {
             // Cleanup workspace
             try {
-                executeStep(build, "Cleanup Workspace", () -> cleanupWorkspace(workspaceDir));
+                if (job.isCleanupWorkspace()) {
+                    executeStep(build, "Cleanup Workspace", () -> cleanupWorkspace(workspaceDir));
+                }
             } catch (Exception e) {
                 logger.warn("Failed to cleanup workspace for build ID: {}", build.getId(), e);
             }

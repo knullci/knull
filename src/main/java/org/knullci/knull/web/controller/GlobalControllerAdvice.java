@@ -1,13 +1,15 @@
 package org.knullci.knull.web.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.knullci.knull.domain.model.KnullUserDetails;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 /**
  * Global controller advice that adds common model attributes to all
- * controllers.
- * This is used to provide the current request path for navbar highlighting.
+ * controllers, including user information for RBAC.
  */
 @ControllerAdvice
 public class GlobalControllerAdvice {
@@ -22,5 +24,39 @@ public class GlobalControllerAdvice {
     @ModelAttribute("currentPath")
     public String currentPath(HttpServletRequest request) {
         return request.getRequestURI();
+    }
+
+    /**
+     * Adds the current authenticated user to the model.
+     */
+    @ModelAttribute("currentUser")
+    public KnullUserDetails currentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof KnullUserDetails) {
+            return (KnullUserDetails) auth.getPrincipal();
+        }
+        return null;
+    }
+
+    /**
+     * Checks if the current user is an admin.
+     */
+    @ModelAttribute("isAdmin")
+    public boolean isAdmin() {
+        KnullUserDetails user = currentUser();
+        return user != null && user.getRole() != null &&
+                user.getRole().name().equals("ADMIN");
+    }
+
+    /**
+     * Checks if the current user is a developer or admin.
+     */
+    @ModelAttribute("canEdit")
+    public boolean canEdit() {
+        KnullUserDetails user = currentUser();
+        if (user == null || user.getRole() == null)
+            return false;
+        String role = user.getRole().name();
+        return role.equals("ADMIN") || role.equals("DEVELOPER");
     }
 }

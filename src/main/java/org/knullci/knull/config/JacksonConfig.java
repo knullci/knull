@@ -5,7 +5,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 @Configuration
 public class JacksonConfig {
@@ -16,8 +15,10 @@ public class JacksonConfig {
      */
     @Bean
     @Primary
-    public ObjectMapper jsonObjectMapper(Jackson2ObjectMapperBuilder builder) {
-        return builder.build();
+    public ObjectMapper jsonObjectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
+        return objectMapper;
     }
 
     /**

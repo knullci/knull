@@ -64,7 +64,7 @@ public class ExecuteBuildCommandHandlerImpl implements ExecuteBuildCommandHandle
                 command.getRepositoryName(),
                 command.getCommitSha(),
                 GHCommitState.PENDING,
-                "http://localhost:8080/builds/" + build.getId(),
+                "http://localhost:8080/builds/" + build.getId() + "/pipeline",
                 "Build #" + build.getId() + " is in progress...",
                 KnullConstant.BUILD_CONTEXT));
 
@@ -99,7 +99,7 @@ public class ExecuteBuildCommandHandlerImpl implements ExecuteBuildCommandHandle
                     command.getRepositoryName(),
                     command.getCommitSha(),
                     GHCommitState.SUCCESS,
-                    "http://localhost:8080/builds/" + build.getId(),
+                    "http://localhost:8080/builds/" + build.getId() + "/pipeline",
                     "Build #" + build.getId() + " passed",
                     KnullConstant.BUILD_CONTEXT));
 
@@ -134,7 +134,7 @@ public class ExecuteBuildCommandHandlerImpl implements ExecuteBuildCommandHandle
                     command.getRepositoryName(),
                     command.getCommitSha(),
                     GHCommitState.FAILURE,
-                    "http://localhost:8080/builds/" + build.getId(),
+                    "http://localhost:8080/builds/" + build.getId() + "/pipeline",
                     "Build #" + build.getId() + " failed",
                     KnullConstant.BUILD_CONTEXT));
         }

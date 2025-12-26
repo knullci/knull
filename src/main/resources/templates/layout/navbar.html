@@ -60,6 +60,7 @@
             <ul class="space-y-2">
                 <li>
                     <a th:href="@{/}"
+                        th:classappend="${currentPath == '/'} ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-600'"
                         class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-all duration-200">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -70,6 +71,7 @@
                 </li>
                 <li>
                     <a th:href="@{/jobs}"
+                        th:classappend="${#strings.startsWith(currentPath, '/jobs')} ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-600'"
                         class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-all duration-200">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -80,6 +82,7 @@
                 </li>
                 <li>
                     <a th:href="@{/credentials}"
+                        th:classappend="${#strings.startsWith(currentPath, '/credentials')} ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-600'"
                         class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-all duration-200">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -90,6 +93,7 @@
                 </li>
                 <li>
                     <a th:href="@{/builds}"
+                        th:classappend="${#strings.startsWith(currentPath, '/builds')} ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-600'"
                         class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-all duration-200">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -100,6 +104,7 @@
                 </li>
                 <li>
                     <a th:href="@{/secret-files}"
+                        th:classappend="${#strings.startsWith(currentPath, '/secret-files')} ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-600'"
                         class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-all duration-200">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -110,6 +115,7 @@
                 </li>
                 <li>
                     <a th:href="@{/settings}"
+                        th:classappend="${#strings.startsWith(currentPath, '/settings')} ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-600'"
                         class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-all duration-200">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

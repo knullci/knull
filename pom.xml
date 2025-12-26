@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.7</version>
+		<version>4.0.1</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>org.knull-ci</groupId>
@@ -28,6 +28,9 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<grpc.version>1.77.0</grpc.version>
+		<protobuf-java.version>3.25.5</protobuf-java.version>
+		<spring-grpc.version>1.0.0</spring-grpc.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -38,7 +41,16 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-services</artifactId>
+			<version>${grpc.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.grpc</groupId>
+			<artifactId>spring-grpc-spring-boot-starter</artifactId>
+			<version>${spring-grpc.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -53,11 +65,7 @@
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
         </dependency>
-        <dependency>
-            <groupId>tools.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>3.0.2</version>
-        </dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
@@ -71,6 +79,12 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.grpc</groupId>
+			<artifactId>spring-grpc-test</artifactId>
+			<scope>test</scope>
+			<version>${spring-grpc.version}</version>
+    	</dependency>
 	</dependencies>
 
 	<build>
@@ -102,6 +116,34 @@
 			<plugin>
 				<groupId>org.graalvm.buildtools</groupId>
 				<artifactId>native-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>io.github.ascopes</groupId>
+				<artifactId>protobuf-maven-plugin</artifactId>
+				<version>4.0.3</version>
+				<configuration>
+				<failOnMissingSources>false</failOnMissingSources>
+				<protoc>${protobuf-java.version}</protoc>
+				<sourceDirectories>
+					<sourceDirectory>${project.basedir}/src/main/java/org/knullci/knull/proto</sourceDirectory>
+				</sourceDirectories>
+				<binaryMavenPlugins>
+					<binaryMavenPlugin>
+					<groupId>io.grpc</groupId>
+					<artifactId>protoc-gen-grpc-java</artifactId>
+					<version>${grpc.version}</version>
+					<options>@generated=omit</options>
+					</binaryMavenPlugin>
+				</binaryMavenPlugins>
+				</configuration>
+				<executions>
+				<execution>
+					<id>generate</id>
+					<goals>
+					<goal>generate</goal>
+					</goals>
+				</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

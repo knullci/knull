@@ -25,14 +25,54 @@
         <!-- Enhanced Build Detail Side Navigation -->
         <div class="w-64 bg-white border-r border-gray-200 fixed left-0 top-0 bottom-0 overflow-y-auto shadow-lg">
             <!-- Logo Section -->
-            <div class="px-6 py-5 border-b border-gray-200">
+            <div class="p-6 border-b border-gray-200 bg-gradient-to-br">
                 <div class="flex items-center gap-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" viewBox="0 0 24 24"
-                        fill="currentColor" aria-hidden="true">
-                        <path
-                            d="M3 5a2 2 0 012-2h7v6H3V5zM3 11h9v6H5a2 2 0 01-2-2v-4zM14 3h5a2 2 0 012 2v4h-7V3zM14 11h7v4a2 2 0 01-2 2h-5v-6z" />
+                    <!-- Custom Knull CI Logo -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" viewBox="0 0 100 100" fill="none">
+                        <!-- Gradient Definitions -->
+                        <defs>
+                            <linearGradient id="knullGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#6366F1;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+
+                        <!-- Outer Circle (Pipeline Ring) -->
+                        <circle cx="50" cy="50" r="45" stroke="url(#knullGradient)" stroke-width="3" fill="none"
+                            opacity="0.3" />
+
+                        <!-- Stylized 'K' with Circuit Elements -->
+                        <!-- Vertical bar of K -->
+                        <rect x="25" y="25" width="8" height="50" fill="url(#knullGradient)" rx="2" />
+
+                        <!-- Upper diagonal of K with nodes -->
+                        <path d="M33 40 L55 25" stroke="url(#knullGradient)" stroke-width="8" stroke-linecap="round" />
+                        <circle cx="55" cy="25" r="5" fill="#3B82F6" />
+                        <circle cx="55" cy="25" r="3" fill="white" />
+
+                        <!-- Lower diagonal of K with nodes -->
+                        <path d="M33 60 L55 75" stroke="url(#knullGradient)" stroke-width="8" stroke-linecap="round" />
+                        <circle cx="55" cy="75" r="5" fill="#6366F1" />
+                        <circle cx="55" cy="75" r="3" fill="white" />
+
+                        <!-- Pipeline flow indicators (dots) -->
+                        <circle cx="70" cy="30" r="3" fill="#3B82F6" opacity="0.6" />
+                        <circle cx="75" cy="50" r="3" fill="#6366F1" opacity="0.6" />
+                        <circle cx="70" cy="70" r="3" fill="#3B82F6" opacity="0.6" />
+
+                        <!-- Connection lines (representing CI/CD flow) -->
+                        <path d="M55 25 L70 30" stroke="#3B82F6" stroke-width="2" opacity="0.4"
+                            stroke-dasharray="2,2" />
+                        <path d="M55 75 L70 70" stroke="#6366F1" stroke-width="2" opacity="0.4"
+                            stroke-dasharray="2,2" />
                     </svg>
-                    <span class="text-xl font-bold tracking-wide text-gray-900">KnullCI</span>
+
+                    <div class="flex flex-col">
+                        <span class="text-xl font-bold tracking-tight text-gray-900">
+                            Knull<span class="text-blue-600">CI</span>
+                        </span>
+                        <span class="text-xs text-gray-500 font-medium">Continuous Integration</span>
+                    </div>
                 </div>
             </div>
 

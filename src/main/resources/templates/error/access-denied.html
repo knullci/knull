@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Access Denied | KnullCI</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+
+<body class="bg-gray-100 text-gray-800">
+
+    <div th:replace="~{layout/navbar :: body}"></div>
+
+    <!-- Page Container -->
+    <div class="ml-64 p-8">
+        <div class="max-w-xl mx-auto text-center">
+
+            <!-- Icon -->
+            <div class="mb-8">
+                <svg class="mx-auto h-24 w-24 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+
+            <!-- Message -->
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Access Denied</h1>
+            <p class="text-xl text-gray-600 mb-8">
+                You don't have permission to access this page.
+            </p>
+
+            <!-- Details -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">What happened?</h2>
+                <p class="text-gray-600 mb-4">
+                    Your current role doesn't have the required permissions to view this page or perform this action.
+                </p>
+                <div class="text-sm text-gray-500">
+                    <p th:if="${currentUser != null}">
+                        You are logged in as <strong th:text="${currentUser.username}"></strong>
+                        with role <span class="font-semibold" th:text="${currentUser.role}"></span>.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex justify-center gap-4">
+                <a href="javascript:history.back()"
+                    class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                    Go Back
+                </a>
+                <a th:href="@{/}" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    Go to Dashboard
+                </a>
+            </div>
+
+            <!-- Contact Admin -->
+            <p class="mt-8 text-sm text-gray-500">
+                If you believe you should have access, please contact your administrator.
+            </p>
+
+        </div>
+    </div>
+
+</body>
+
+</html>

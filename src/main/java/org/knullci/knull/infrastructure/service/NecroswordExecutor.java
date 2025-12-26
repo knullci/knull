@@ -34,11 +34,14 @@ import java.util.concurrent.TimeUnit;
 public class NecroswordExecutor implements KnullExecutor {
 
     private static final Logger logger = LoggerFactory.getLogger(NecroswordExecutor.class);
-    private static final String WORKSPACE_BASE = "workspace";
     private final CredentialRepository credentialRepository;
     private final BuildRepository buildRepository;
     private final EncryptionService encryptionService;
     private final ObjectMapper yamlObjectMapper;
+
+    // Workspace configuration - shared path between Knull and Necrosword
+    @Value("${knull.workspace.base-path:/tmp/knull-workspace}")
+    private String workspaceBasePath;
 
     // gRPC configuration - configure in application.properties
     @Value("${necrosword.grpc.host:localhost}")
@@ -87,7 +90,7 @@ public class NecroswordExecutor implements KnullExecutor {
     public void executeBuild(Build build, Job job) {
         logger.info("Starting build execution for build ID: {}", build.getId());
 
-        String workspaceDir = WORKSPACE_BASE + "/build-" + build.getId();
+        String workspaceDir = workspaceBasePath + "/build-" + build.getId();
         JobConfig jobConfig = job.getJobConfig();
 
         try {
@@ -98,6 +101,14 @@ public class NecroswordExecutor implements KnullExecutor {
             executeStep(build, "Clone Repository",
                     () -> cloneRepository(build, jobConfig.getCredentials(), workspaceDir));
 
+            // Step 3: Checkout branch
+            executeStep(build, "Checkout Branch", () -> checkoutBranch(build, workspaceDir + "/" + build.getRepositoryName()));
+
+            // Step 4: Checkout specific commit
+            if (!job.isCheckoutLatestCommit()) {
+                executeStep(build, "Checkout Commit", () -> checkoutCommit(build, workspaceDir + "/" + build.getRepositoryName()));
+            }
+
             logger.info("Build execution completed successfully for build ID: {}", build.getId());
 
         } catch (Exception e) {
@@ -107,8 +118,7 @@ public class NecroswordExecutor implements KnullExecutor {
             // Cleanup workspace
             try {
                 if (job.isCleanupWorkspace()) {
-                    // executeStep(build, "Cleanup Workspace", () ->
-                    // cleanupWorkspace(workspaceDir));
+                     executeStep(build, "Cleanup Workspace", () -> cleanupWorkspace(workspaceDir));
                 }
             } catch (Exception e) {
                 logger.warn("Failed to cleanup workspace for build ID: {}", build.getId(), e);
@@ -194,6 +204,49 @@ public class NecroswordExecutor implements KnullExecutor {
         }
 
         return response.getStdout() + response.getStderr();
+    }
+
+    private String checkoutBranch(Build build, String workspaceDir) throws Exception {
+        ExecuteRequest request = ExecuteRequest.newBuilder()
+                .setTool("git")
+                .addAllArgs(Arrays.asList("checkout", build.getBranch()))
+                .setWorkDir(workspaceDir)
+                .build();
+
+        ExecuteResponse response = blockingStub.execute(request);
+
+        if (!response.getSuccess()) {
+            throw new RuntimeException("Git checkout branch failed: " + response.getError());
+        }
+
+        return response.getStdout() + response.getStderr();
+    }
+
+    private String checkoutCommit(Build build, String workspaceDir) throws Exception {
+        ExecuteRequest request = ExecuteRequest.newBuilder()
+                .setTool("git")
+                .addAllArgs(Arrays.asList("checkout", build.getCommitSha()))
+                .setWorkDir(workspaceDir)
+                .build();
+
+        ExecuteResponse response = blockingStub.execute(request);
+
+        if (!response.getSuccess()) {
+            throw new RuntimeException("Git checkout commit failed: " + response.getError());
+        }
+
+        return response.getStdout() + response.getStderr();
+    }
+
+    private String cleanupWorkspace(String workspaceDir) throws Exception {
+        Path workspacePath = Paths.get(workspaceDir);
+
+        if (Files.exists(workspacePath)) {
+            deleteDirectory(workspacePath.toFile());
+            return "Workspace cleaned up: " + workspacePath.toAbsolutePath();
+        }
+
+        return "Workspace already clean";
     }
 
     private String buildAuthenticatedUrl(String repositoryUrl, Credentials credentials) throws Exception {

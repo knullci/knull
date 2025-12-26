@@ -91,6 +91,86 @@
 
             </div>
 
+            <!-- System Metrics Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+                <!-- CPU Usage Chart -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">CPU Usage</h3>
+                        <span id="cpu-current" class="text-2xl font-bold text-blue-600">0%</span>
+                    </div>
+                    <div class="h-48">
+                        <canvas id="cpuChart"></canvas>
+                    </div>
+                    <div class="mt-2 text-xs text-gray-500 flex justify-between">
+                        <span>Last 5 minutes</span>
+                        <span id="cpu-processors">Processors: -</span>
+                    </div>
+                </div>
+
+                <!-- Memory Usage Chart -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Memory Pressure</h3>
+                        <span id="memory-current" class="text-2xl font-bold text-green-600">0%</span>
+                    </div>
+
+                    <!-- Memory Bar -->
+                    <div class="mb-4">
+                        <div class="h-6 bg-gray-200 rounded-full overflow-hidden flex">
+                            <div id="mem-bar-app" class="bg-blue-500 transition-all duration-300" style="width: 0%">
+                            </div>
+                            <div id="mem-bar-wired" class="bg-yellow-500 transition-all duration-300" style="width: 0%">
+                            </div>
+                            <div id="mem-bar-compressed" class="bg-purple-500 transition-all duration-300"
+                                style="width: 0%"></div>
+                            <div id="mem-bar-cached" class="bg-gray-400 transition-all duration-300" style="width: 0%">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Memory Breakdown Grid -->
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+                                <span class="text-gray-600">App Memory</span>
+                            </div>
+                            <span id="mem-app" class="font-semibold text-gray-900">-</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
+                                <span class="text-gray-600">Wired</span>
+                            </div>
+                            <span id="mem-wired" class="font-semibold text-gray-900">-</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 bg-purple-500 rounded-full mr-2"></span>
+                                <span class="text-gray-600">Compressed</span>
+                            </div>
+                            <span id="mem-compressed" class="font-semibold text-gray-900">-</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 bg-gray-400 rounded-full mr-2"></span>
+                                <span class="text-gray-600">Cached</span>
+                            </div>
+                            <span id="mem-cached" class="font-semibold text-gray-900">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Total Memory Info -->
+                    <div class="mt-3 pt-3 border-t border-gray-200 flex justify-between text-xs text-gray-500">
+                        <span id="memory-used">Used: -</span>
+                        <span id="memory-total">Physical: -</span>
+                    </div>
+                </div>
+
+            </div>
+
             <!-- Recent Builds -->
             <div class="bg-white rounded-lg shadow-md overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -187,6 +267,165 @@
 
         </div>
     </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <script>
+        // Configuration
+        const MAX_DATA_POINTS = 60; // 5 minutes of data at 5-second intervals
+        const POLL_INTERVAL = 5000; // 5 seconds
+
+        // Data arrays
+        const cpuData = [];
+        const labels = [];
+
+        // Chart colors
+        const cpuColor = 'rgb(59, 130, 246)'; // Blue
+
+        // Common chart options
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 300
+            },
+            scales: {
+                x: {
+                    display: false
+                },
+                y: {
+                    min: 0,
+                    max: 100,
+                    ticks: {
+                        callback: function (value) {
+                            return value + '%';
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return context.parsed.y.toFixed(1) + '%';
+                        }
+                    }
+                }
+            },
+            elements: {
+                point: {
+                    radius: 0,
+                    hoverRadius: 4
+                },
+                line: {
+                    tension: 0.4,
+                    borderWidth: 2
+                }
+            }
+        };
+
+        // Initialize CPU Chart
+        const cpuCtx = document.getElementById('cpuChart').getContext('2d');
+        const cpuChart = new Chart(cpuCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'CPU Usage',
+                    data: cpuData,
+                    borderColor: cpuColor,
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true
+                }]
+            },
+            options: chartOptions
+        });
+
+        // Format bytes to human readable
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+            return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+        }
+
+        // Update memory pressure color based on usage
+        function getMemoryPressureColor(percent) {
+            if (percent < 50) return 'text-green-600';
+            if (percent < 75) return 'text-yellow-600';
+            return 'text-red-600';
+        }
+
+        // Fetch and update metrics
+        async function fetchMetrics() {
+            try {
+                const response = await fetch('/api/system/metrics');
+                const data = await response.json();
+                const mem = data.systemMemory;
+
+                // Add timestamp for CPU chart
+                const now = new Date();
+                labels.push(now.toLocaleTimeString());
+                cpuData.push(data.cpuUsage);
+
+                // Keep only last MAX_DATA_POINTS
+                if (labels.length > MAX_DATA_POINTS) {
+                    labels.shift();
+                    cpuData.shift();
+                }
+
+                // Update CPU chart
+                cpuChart.update('none');
+
+                // Update CPU current values
+                document.getElementById('cpu-current').textContent = data.cpuUsage.toFixed(1) + '%';
+                document.getElementById('cpu-processors').textContent = 'Processors: ' + data.processors;
+
+                // Calculate percentages for memory bar
+                const total = mem.physical;
+                const appPercent = (mem.appMemory / total) * 100;
+                const wiredPercent = (mem.wired / total) * 100;
+                const compressedPercent = (mem.compressed / total) * 100;
+                const cachedPercent = (mem.cached / total) * 100;
+
+                // Update memory bar segments
+                document.getElementById('mem-bar-app').style.width = appPercent + '%';
+                document.getElementById('mem-bar-wired').style.width = wiredPercent + '%';
+                document.getElementById('mem-bar-compressed').style.width = compressedPercent + '%';
+                document.getElementById('mem-bar-cached').style.width = cachedPercent + '%';
+
+                // Update memory breakdown values
+                document.getElementById('mem-app').textContent = formatBytes(mem.appMemory);
+                document.getElementById('mem-wired').textContent = formatBytes(mem.wired);
+                document.getElementById('mem-compressed').textContent = formatBytes(mem.compressed);
+                document.getElementById('mem-cached').textContent = formatBytes(mem.cached);
+
+                // Update overall memory info
+                const memCurrentEl = document.getElementById('memory-current');
+                memCurrentEl.textContent = mem.usagePercent.toFixed(1) + '%';
+                memCurrentEl.className = 'text-2xl font-bold ' + getMemoryPressureColor(mem.usagePercent);
+
+                document.getElementById('memory-used').textContent = 'Used: ' + formatBytes(mem.used);
+                document.getElementById('memory-total').textContent = 'Physical: ' + formatBytes(mem.physical);
+
+            } catch (error) {
+                console.error('Failed to fetch metrics:', error);
+            }
+        }
+
+        // Initial fetch
+        fetchMetrics();
+
+        // Start polling
+        setInterval(fetchMetrics, POLL_INTERVAL);
+    </script>
 
 </body>
 

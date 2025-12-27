@@ -9,6 +9,11 @@ import org.knullci.knull.application.query.GetSettingsQuery;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.time.ZoneId;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/settings")
@@ -61,4 +66,48 @@ public class SettingsController {
         return "redirect:/settings/github";
     }
 
+    @GetMapping("/general")
+    public String showGeneralSettings(Model model) {
+        var settings = getSettingsQueryHandler.handle(new GetSettingsQuery());
+
+        // Get available timezones
+        List<String> timezones = ZoneId.getAvailableZoneIds().stream()
+                .sorted()
+                .collect(Collectors.toList());
+
+        model.addAttribute("settings", settings);
+        model.addAttribute("timezones", timezones);
+
+        return "settings/general";
+    }
+
+    @PostMapping("/general")
+    public String saveGeneralSettings(
+            @RequestParam(value = "instanceName", required = false) String instanceName,
+            @RequestParam(value = "timezone", required = false) String timezone,
+            @RequestParam(value = "maxConcurrentBuilds", required = false) Integer maxConcurrentBuilds,
+            @RequestParam(value = "buildTimeoutMinutes", required = false) Integer buildTimeoutMinutes,
+            @RequestParam(value = "buildRetentionDays", required = false) Integer buildRetentionDays,
+            @RequestParam(value = "autoCleanupWorkspace", required = false) Boolean autoCleanupWorkspace,
+            RedirectAttributes redirectAttributes) {
+
+        // Handle checkbox - if not present in form, it's unchecked (false)
+        if (autoCleanupWorkspace == null) {
+            autoCleanupWorkspace = false;
+        }
+
+        SaveSettingsCommand command = new SaveSettingsCommand(
+                null, // Don't change GitHub credential
+                instanceName,
+                timezone,
+                maxConcurrentBuilds,
+                buildTimeoutMinutes,
+                buildRetentionDays,
+                autoCleanupWorkspace);
+
+        saveSettingsCommandHandler.handle(command);
+
+        redirectAttributes.addFlashAttribute("success", "Settings saved successfully");
+        return "redirect:/settings/general";
+    }
 }

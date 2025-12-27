@@ -10,8 +10,13 @@ public class SettingsMapper {
         }
         return new org.knullci.knull.persistence.entity.Settings(
                 settings.getId(),
-                settings.getGithubCredentialId()
-        );
+                settings.getGithubCredentialId(),
+                settings.getInstanceName(),
+                settings.getTimezone(),
+                settings.getMaxConcurrentBuilds(),
+                settings.getBuildTimeoutMinutes(),
+                settings.getBuildRetentionDays(),
+                settings.getAutoCleanupWorkspace());
     }
 
     public static Settings fromEntity(org.knullci.knull.persistence.entity.Settings settingsEntity) {
@@ -20,7 +25,12 @@ public class SettingsMapper {
         }
         return new Settings(
                 settingsEntity.getId(),
-                settingsEntity.getGithubCredentialId()
-        );
+                settingsEntity.getGithubCredentialId(),
+                settingsEntity.getInstanceName(),
+                settingsEntity.getTimezone(),
+                settingsEntity.getMaxConcurrentBuilds(),
+                settingsEntity.getBuildTimeoutMinutes(),
+                settingsEntity.getBuildRetentionDays(),
+                settingsEntity.getAutoCleanupWorkspace());
     }
 }

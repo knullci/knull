@@ -22,12 +22,17 @@ public class GetSettingsQueryHandlerImpl implements GetSettingsQueryHandler {
     @Override
     public SettingsDto handle(GetSettingsQuery query) {
         logger.info("Fetching settings");
-        
+
         return this.settingsRepository.getSettings()
                 .map(settings -> new SettingsDto(
                         settings.getId(),
-                        settings.getGithubCredentialId()
-                ))
-                .orElse(new SettingsDto(1L, null));
+                        settings.getGithubCredentialId(),
+                        settings.getInstanceName(),
+                        settings.getTimezone(),
+                        settings.getMaxConcurrentBuilds(),
+                        settings.getBuildTimeoutMinutes(),
+                        settings.getBuildRetentionDays(),
+                        settings.getAutoCleanupWorkspace()))
+                .orElse(new SettingsDto(1L, null, null, null, null, null, null, null));
     }
 }

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Setup - Knull CI</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-md bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" viewBox="0 0 100 100" fill="none">
+                <defs>
+                    <linearGradient id="knullGradientSetup" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#6366F1;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <circle cx="50" cy="50" r="45" stroke="url(#knullGradientSetup)" stroke-width="3" fill="none"
+                    opacity="0.3" />
+                <rect x="25" y="25" width="8" height="50" fill="url(#knullGradientSetup)" rx="2" />
+                <path d="M33 40 L55 25" stroke="url(#knullGradientSetup)" stroke-width="8" stroke-linecap="round" />
+                <circle cx="55" cy="25" r="5" fill="#3B82F6" />
+                <circle cx="55" cy="25" r="3" fill="white" />
+                <path d="M33 60 L55 75" stroke="url(#knullGradientSetup)" stroke-width="8" stroke-linecap="round" />
+                <circle cx="55" cy="75" r="5" fill="#6366F1" />
+                <circle cx="55" cy="75" r="3" fill="white" />
+                <circle cx="70" cy="30" r="3" fill="#3B82F6" opacity="0.6" />
+                <circle cx="75" cy="50" r="3" fill="#6366F1" opacity="0.6" />
+                <circle cx="70" cy="70" r="3" fill="#3B82F6" opacity="0.6" />
+                <path d="M55 25 L70 30" stroke="#3B82F6" stroke-width="2" opacity="0.4" stroke-dasharray="2,2" />
+                <path d="M55 75 L70 70" stroke="#6366F1" stroke-width="2" opacity="0.4" stroke-dasharray="2,2" />
+            </svg>
+            <div class="flex flex-col">
+                <h1 class="text-2xl font-bold text-gray-900">Knull<span class="text-blue-600">CI</span></h1>
+                <span class="text-xs text-gray-500">Continuous Integration</span>
+            </div>
+        </div>
+
+        <h2 class="text-xl font-semibold text-gray-900 mb-1">Welcome! Let's get started</h2>
+        <p class="text-sm text-gray-600 mb-5">Create your admin account to begin.</p>
+
+        <!-- Error Messages -->
+        <div th:if="${errors != null and !errors.isEmpty()}"
+            class="mb-4 bg-red-50 text-red-800 border border-red-200 px-3 py-2 rounded-lg text-sm">
+            <ul class="list-disc list-inside space-y-1">
+                <li th:each="error : ${errors}" th:text="${error}"></li>
+            </ul>
+        </div>
+
+        <form th:action="@{/setup}" th:object="${setupForm}" method="post" class="space-y-4">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+            <!-- Username & Display Name Row -->
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username *</label>
+                    <input id="username" th:field="*{username}" type="text" autocomplete="username" required
+                        class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="admin" />
+                </div>
+                <div>
+                    <label for="displayName" class="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+                    <input id="displayName" th:field="*{displayName}" type="text" autocomplete="name"
+                        class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="John Doe" />
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email (optional)</label>
+                <input id="email" th:field="*{email}" type="email" autocomplete="email"
+                    class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="admin@example.com" />
+            </div>
+
+            <!-- Password Row -->
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password *</label>
+                    <input id="password" th:field="*{password}" type="password" autocomplete="new-password" required
+                        class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="••••••••" />
+                </div>
+                <div>
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirm *</label>
+                    <input id="confirmPassword" th:field="*{confirmPassword}" type="password"
+                        autocomplete="new-password" required
+                        class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="••••••••" />
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 -mt-2">Password must be at least 6 characters</p>
+
+            <button type="submit"
+                class="w-full inline-flex justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-white font-medium shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                Create Admin Account
+            </button>
+        </form>
+
+        <p class="mt-6 text-center text-xs text-gray-500">© <span
+                th:text="${#dates.format(#dates.createNow(), 'yyyy')}"></span> KnullCI</p>
+    </div>
+</body>
+
+</html>

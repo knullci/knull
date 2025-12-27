@@ -23,6 +23,7 @@ public class SecurityConfig {
 						.requestMatchers(
 								"/api/v1/webhook/github",
 								"/login",
+								"/setup",
 								"/css/**",
 								"/static/**",
 								"/images/**",

@@ -1,47 +1,41 @@
 package org.knullci.knull.persistence.config;
 
-import org.knullci.knull.domain.enums.Role;
-import org.knullci.knull.domain.model.User;
 import org.knullci.knull.domain.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.util.Set;
-
+/**
+ * Data Seeder for initial application setup.
+ * 
+ * This component checks if the application needs initial setup (no users exist)
+ * and logs appropriate messages. The actual admin user creation is handled
+ * by the SetupController and SetupAdminCommandHandler when accessed via the
+ * /setup endpoint.
+ */
 @Component
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
+	private static final Logger logger = LoggerFactory.getLogger(DataSeeder.class);
+
 	private final UserRepository userRepository;
-	private final PasswordEncoder passwordEncoder;
 
 	@Override
 	public void run(String... args) throws Exception {
-		if (userRepository.count() == 0) {
-			// Create default admin user
-			User adminUser = new User(
-					null, // id
-					"knull", // username
-					"admin@knullci.local", // email
-					passwordEncoder.encode("knull"), // password
-					"Knull Admin", // displayName
-					Role.ADMIN, // role - ADMIN by default
-					Set.of(), // additionalPermissions
-					true, // active
-					false, // accountLocked
-					LocalDateTime.now(), // createdAt
-					LocalDateTime.now(), // updatedAt
-					null // lastLoginAt
-			);
-
-			userRepository.save(adminUser);
-
-			System.out.println("Default admin user created: knull (password: knull)");
+		long userCount = userRepository.count();
+		if (userCount == 0) {
+			logger.info("╔═══════════════════════════════════════════════════════════════════╗");
+			logger.info("║                    KNULL CI/CD FIRST TIME SETUP                   ║");
+			logger.info("╠═══════════════════════════════════════════════════════════════════╣");
+			logger.info("║  No users found in the database.                                  ║");
+			logger.info("║  Please navigate to /setup to create the admin user.             ║");
+			logger.info("╚═══════════════════════════════════════════════════════════════════╝");
+		} else {
+			logger.info("Knull CI/CD started successfully. {} user(s) found.", userCount);
 		}
 	}
-
 }

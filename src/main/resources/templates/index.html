@@ -91,6 +91,162 @@
 
             </div>
 
+            <!-- Executor Status Section -->
+            <div class="mb-8">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div
+                                class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mr-4">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 12h14M12 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Necrosword Executor</h3>
+                                <p class="text-gray-500 text-sm">Build execution engine</p>
+                            </div>
+                        </div>
+                        <div id="executor-status-badge" class="flex items-center px-4 py-2 rounded-full bg-gray-100">
+                            <span id="executor-status-dot"
+                                class="w-3 h-3 rounded-full bg-gray-400 mr-2 animate-pulse"></span>
+                            <span id="executor-status-text" class="text-sm font-medium text-gray-600">Checking...</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Connection Status -->
+                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-500 text-sm">Connection</span>
+                                <span id="executor-connection" class="text-sm font-semibold text-gray-700">--</span>
+                            </div>
+                            <div class="mt-2 flex items-center">
+                                <svg id="executor-connection-icon" class="w-5 h-5 text-gray-400 mr-2" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+                                </svg>
+                                <span id="executor-host" class="text-xs text-gray-500">localhost:8081</span>
+                            </div>
+                        </div>
+
+                        <!-- Running Processes -->
+                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-500 text-sm">Running Processes</span>
+                                <span id="executor-processes" class="text-2xl font-bold text-gray-900">-</span>
+                            </div>
+                            <div class="mt-2 flex items-center">
+                                <div class="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+                                    <div id="executor-processes-bar"
+                                        class="h-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-500"
+                                        style="width: 0%"></div>
+                                </div>
+                                <span id="executor-max-processes" class="text-xs text-gray-500 ml-2">/ 10</span>
+                            </div>
+                        </div>
+
+                        <!-- Activity Status -->
+                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-500 text-sm">Activity</span>
+                                <span id="executor-activity" class="text-sm font-semibold text-gray-700">--</span>
+                            </div>
+                            <div class="mt-2 flex items-center">
+                                <svg id="executor-activity-icon" class="w-5 h-5 text-gray-400 mr-2" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                <span id="executor-last-check" class="text-xs text-gray-500">Last check: --</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Metrics Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+                <!-- CPU Usage Chart -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">CPU Usage</h3>
+                        <span id="cpu-current" class="text-2xl font-bold text-blue-600">0%</span>
+                    </div>
+                    <div class="h-48">
+                        <canvas id="cpuChart"></canvas>
+                    </div>
+                    <div class="mt-2 text-xs text-gray-500 flex justify-between">
+                        <span>Last 5 minutes</span>
+                        <span id="cpu-processors">Processors: -</span>
+                    </div>
+                </div>
+
+                <!-- Memory Usage Chart -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Memory Pressure</h3>
+                        <span id="memory-current" class="text-2xl font-bold text-green-600">0%</span>
+                    </div>
+
+                    <!-- Memory Bar -->
+                    <div class="mb-4">
+                        <div class="h-6 bg-gray-200 rounded-full overflow-hidden flex">
+                            <div id="mem-bar-app" class="bg-blue-500 transition-all duration-300" style="width: 0%">
+                            </div>
+                            <div id="mem-bar-wired" class="bg-yellow-500 transition-all duration-300" style="width: 0%">
+                            </div>
+                            <div id="mem-bar-compressed" class="bg-purple-500 transition-all duration-300"
+                                style="width: 0%"></div>
+                            <div id="mem-bar-cached" class="bg-gray-400 transition-all duration-300" style="width: 0%">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Memory Breakdown Grid -->
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+                                <span class="text-gray-600">App Memory</span>
+                            </div>
+                            <span id="mem-app" class="font-semibold text-gray-900">-</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
+                                <span class="text-gray-600">Wired</span>
+                            </div>
+                            <span id="mem-wired" class="font-semibold text-gray-900">-</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 bg-purple-500 rounded-full mr-2"></span>
+                                <span class="text-gray-600">Compressed</span>
+                            </div>
+                            <span id="mem-compressed" class="font-semibold text-gray-900">-</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 bg-gray-400 rounded-full mr-2"></span>
+                                <span class="text-gray-600">Cached</span>
+                            </div>
+                            <span id="mem-cached" class="font-semibold text-gray-900">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Total Memory Info -->
+                    <div class="mt-3 pt-3 border-t border-gray-200 flex justify-between text-xs text-gray-500">
+                        <span id="memory-used">Used: -</span>
+                        <span id="memory-total">Physical: -</span>
+                    </div>
+                </div>
+
+            </div>
+
             <!-- Recent Builds -->
             <div class="bg-white rounded-lg shadow-md overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -187,6 +343,251 @@
 
         </div>
     </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <script>
+        // Configuration
+        const MAX_DATA_POINTS = 60; // 5 minutes of data at 5-second intervals
+        const POLL_INTERVAL = 5000; // 5 seconds
+
+        // Data arrays
+        const cpuData = [];
+        const labels = [];
+
+        // Chart colors
+        const cpuColor = 'rgb(59, 130, 246)'; // Blue
+
+        // Common chart options
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 300
+            },
+            scales: {
+                x: {
+                    display: false
+                },
+                y: {
+                    min: 0,
+                    max: 100,
+                    ticks: {
+                        callback: function (value) {
+                            return value + '%';
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return context.parsed.y.toFixed(1) + '%';
+                        }
+                    }
+                }
+            },
+            elements: {
+                point: {
+                    radius: 0,
+                    hoverRadius: 4
+                },
+                line: {
+                    tension: 0.4,
+                    borderWidth: 2
+                }
+            }
+        };
+
+        // Initialize CPU Chart
+        const cpuCtx = document.getElementById('cpuChart').getContext('2d');
+        const cpuChart = new Chart(cpuCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'CPU Usage',
+                    data: cpuData,
+                    borderColor: cpuColor,
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true
+                }]
+            },
+            options: chartOptions
+        });
+
+        // Format bytes to human readable
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+            return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+        }
+
+        // Update memory pressure color based on usage
+        function getMemoryPressureColor(percent) {
+            if (percent < 50) return 'text-green-600';
+            if (percent < 75) return 'text-yellow-600';
+            return 'text-red-600';
+        }
+
+        // Fetch and update metrics
+        async function fetchMetrics() {
+            try {
+                const response = await fetch('/api/system/metrics');
+                const data = await response.json();
+                const mem = data.systemMemory;
+
+                // Add timestamp for CPU chart
+                const now = new Date();
+                labels.push(now.toLocaleTimeString());
+                cpuData.push(data.cpuUsage);
+
+                // Keep only last MAX_DATA_POINTS
+                if (labels.length > MAX_DATA_POINTS) {
+                    labels.shift();
+                    cpuData.shift();
+                }
+
+                // Update CPU chart
+                cpuChart.update('none');
+
+                // Update CPU current values
+                document.getElementById('cpu-current').textContent = data.cpuUsage.toFixed(1) + '%';
+                document.getElementById('cpu-processors').textContent = 'Processors: ' + data.processors;
+
+                // Calculate percentages for memory bar
+                const total = mem.physical;
+                const appPercent = (mem.appMemory / total) * 100;
+                const wiredPercent = (mem.wired / total) * 100;
+                const compressedPercent = (mem.compressed / total) * 100;
+                const cachedPercent = (mem.cached / total) * 100;
+
+                // Update memory bar segments
+                document.getElementById('mem-bar-app').style.width = appPercent + '%';
+                document.getElementById('mem-bar-wired').style.width = wiredPercent + '%';
+                document.getElementById('mem-bar-compressed').style.width = compressedPercent + '%';
+                document.getElementById('mem-bar-cached').style.width = cachedPercent + '%';
+
+                // Update memory breakdown values
+                document.getElementById('mem-app').textContent = formatBytes(mem.appMemory);
+                document.getElementById('mem-wired').textContent = formatBytes(mem.wired);
+                document.getElementById('mem-compressed').textContent = formatBytes(mem.compressed);
+                document.getElementById('mem-cached').textContent = formatBytes(mem.cached);
+
+                // Update overall memory info
+                const memCurrentEl = document.getElementById('memory-current');
+                memCurrentEl.textContent = mem.usagePercent.toFixed(1) + '%';
+                memCurrentEl.className = 'text-2xl font-bold ' + getMemoryPressureColor(mem.usagePercent);
+
+                document.getElementById('memory-used').textContent = 'Used: ' + formatBytes(mem.used);
+                document.getElementById('memory-total').textContent = 'Physical: ' + formatBytes(mem.physical);
+
+            } catch (error) {
+                console.error('Failed to fetch metrics:', error);
+            }
+        }
+
+        // Initial fetch
+        fetchMetrics();
+
+        // Start polling
+        setInterval(fetchMetrics, POLL_INTERVAL);
+
+        // ==================== EXECUTOR STATUS ====================
+        const EXECUTOR_POLL_INTERVAL = 5000; // 5 seconds
+        const MAX_CONCURRENT_PROCESSES = 10;
+
+        // Update executor status UI
+        function updateExecutorStatus(data) {
+            const statusDot = document.getElementById('executor-status-dot');
+            const statusText = document.getElementById('executor-status-text');
+            const statusBadge = document.getElementById('executor-status-badge');
+            const connectionEl = document.getElementById('executor-connection');
+            const connectionIcon = document.getElementById('executor-connection-icon');
+            const processesEl = document.getElementById('executor-processes');
+            const processesBar = document.getElementById('executor-processes-bar');
+            const activityEl = document.getElementById('executor-activity');
+            const activityIcon = document.getElementById('executor-activity-icon');
+            const lastCheckEl = document.getElementById('executor-last-check');
+
+            if (data.connected) {
+                // Connected state (light mode colors)
+                statusDot.className = 'w-3 h-3 rounded-full bg-green-500 mr-2 animate-pulse';
+                statusText.textContent = 'Online';
+                statusText.className = 'text-sm font-medium text-green-700';
+                statusBadge.className = 'flex items-center px-4 py-2 rounded-full bg-green-100 border border-green-200';
+
+                connectionEl.textContent = data.connectionStatus;
+                connectionEl.className = 'text-sm font-semibold text-green-600';
+                connectionIcon.className = 'w-5 h-5 text-green-500 mr-2';
+
+                // Update processes
+                processesEl.textContent = data.runningProcesses;
+                const processPercent = (data.runningProcesses / MAX_CONCURRENT_PROCESSES) * 100;
+                processesBar.style.width = processPercent + '%';
+
+                // Activity status
+                if (data.runningProcesses > 0) {
+                    activityEl.textContent = 'Busy';
+                    activityEl.className = 'text-sm font-semibold text-yellow-600';
+                    activityIcon.className = 'w-5 h-5 text-yellow-500 mr-2 animate-pulse';
+                } else {
+                    activityEl.textContent = 'Idle';
+                    activityEl.className = 'text-sm font-semibold text-gray-600';
+                    activityIcon.className = 'w-5 h-5 text-gray-400 mr-2';
+                }
+            } else {
+                // Disconnected state (light mode colors)
+                statusDot.className = 'w-3 h-3 rounded-full bg-red-500 mr-2';
+                statusText.textContent = 'Offline';
+                statusText.className = 'text-sm font-medium text-red-700';
+                statusBadge.className = 'flex items-center px-4 py-2 rounded-full bg-red-100 border border-red-200';
+
+                connectionEl.textContent = 'Disconnected';
+                connectionEl.className = 'text-sm font-semibold text-red-600';
+                connectionIcon.className = 'w-5 h-5 text-red-500 mr-2';
+
+                processesEl.textContent = '-';
+                processesBar.style.width = '0%';
+
+                activityEl.textContent = 'Unavailable';
+                activityEl.className = 'text-sm font-semibold text-red-600';
+                activityIcon.className = 'w-5 h-5 text-red-500 mr-2';
+            }
+
+            // Update last check time
+            const now = new Date();
+            lastCheckEl.textContent = 'Last check: ' + now.toLocaleTimeString();
+        }
+
+        // Fetch executor status
+        async function fetchExecutorStatus() {
+            try {
+                const response = await fetch('/api/executor/status');
+                const data = await response.json();
+                updateExecutorStatus(data);
+            } catch (error) {
+                console.error('Failed to fetch executor status:', error);
+                // Show disconnected state on error
+                updateExecutorStatus({ connected: false });
+            }
+        }
+
+        // Initial executor status fetch
+        fetchExecutorStatus();
+
+        // Start executor status polling
+        setInterval(fetchExecutorStatus, EXECUTOR_POLL_INTERVAL);
+    </script>
 
 </body>
 

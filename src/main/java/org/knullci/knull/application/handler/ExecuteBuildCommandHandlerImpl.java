@@ -10,6 +10,7 @@ import org.knullci.knull.infrastructure.dto.UpdateCommitStatusDto;
 import org.knullci.knull.infrastructure.enums.GHCommitState;
 import org.knullci.knull.infrastructure.service.BuildExecutorService;
 import org.knullci.knull.infrastructure.service.GithubService;
+import org.knullci.knull.infrastructure.service.KnullExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -25,13 +26,15 @@ public class ExecuteBuildCommandHandlerImpl implements ExecuteBuildCommandHandle
     private final BuildRepository buildRepository;
     private final GithubService githubService;
     private final BuildExecutorService buildExecutorService;
+    private final KnullExecutor knullExecutor;
 
     public ExecuteBuildCommandHandlerImpl(BuildRepository buildRepository,
             GithubService githubService,
-            BuildExecutorService buildExecutorService) {
+            BuildExecutorService buildExecutorService, KnullExecutor knullExecutor) {
         this.buildRepository = buildRepository;
         this.githubService = githubService;
         this.buildExecutorService = buildExecutorService;
+        this.knullExecutor = knullExecutor;
     }
 
     @Override
@@ -71,7 +74,8 @@ public class ExecuteBuildCommandHandlerImpl implements ExecuteBuildCommandHandle
         try {
             // Execute the build using BuildExecutorService
             logger.info("Executing build for job: {}", command.getJob().getName());
-            buildExecutorService.executeBuild(build, command.getJob());
+//            buildExecutorService.executeBuild(build, command.getJob());
+            knullExecutor.executeBuild(build, command.getJob());
 
             // Consolidate build logs from steps
             StringBuilder consolidatedLog = new StringBuilder(build.getBuildLog());

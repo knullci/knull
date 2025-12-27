@@ -19,6 +19,7 @@ import org.knullci.knull.infrastructure.dto.UpdateCommitStatusDto;
 import org.knullci.knull.infrastructure.enums.GHCommitState;
 import org.knullci.knull.infrastructure.service.BuildExecutorService;
 import org.knullci.knull.infrastructure.service.GithubService;
+import org.knullci.knull.infrastructure.service.KnullExecutor;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -38,6 +39,9 @@ class ExecuteBuildCommandHandlerImplTest {
 
     @Mock
     private BuildExecutorService buildExecutorService;
+
+    @Mock
+    private KnullExecutor knullExecutor;
 
     @InjectMocks
     private ExecuteBuildCommandHandlerImpl handler;
@@ -77,7 +81,7 @@ class ExecuteBuildCommandHandlerImplTest {
 
         when(buildRepository.saveBuild(any(Build.class))).thenReturn(savedBuild);
         doNothing().when(githubService).updateCommitStatus(any(UpdateCommitStatusDto.class));
-        doNothing().when(buildExecutorService).executeBuild(any(Build.class), any(Job.class));
+        doNothing().when(knullExecutor).executeBuild(any(Build.class), any(Job.class));
         doNothing().when(buildRepository).updateBuild(any(Build.class));
 
         // Act
@@ -85,7 +89,7 @@ class ExecuteBuildCommandHandlerImplTest {
 
         // Assert
         verify(buildRepository).saveBuild(any(Build.class));
-        verify(buildExecutorService).executeBuild(any(Build.class), eq(testJob));
+        verify(knullExecutor).executeBuild(any(Build.class), eq(testJob));
         verify(buildRepository).updateBuild(buildCaptor.capture());
 
         Build updatedBuild = buildCaptor.getValue();
@@ -100,7 +104,7 @@ class ExecuteBuildCommandHandlerImplTest {
 
         when(buildRepository.saveBuild(any(Build.class))).thenReturn(savedBuild);
         doNothing().when(githubService).updateCommitStatus(any(UpdateCommitStatusDto.class));
-        doThrow(new RuntimeException("Build execution failed")).when(buildExecutorService)
+        doThrow(new RuntimeException("Build execution failed")).when(knullExecutor)
                 .executeBuild(any(Build.class), any(Job.class));
         doNothing().when(buildRepository).updateBuild(any(Build.class));
 
@@ -123,7 +127,7 @@ class ExecuteBuildCommandHandlerImplTest {
 
         when(buildRepository.saveBuild(buildCaptor.capture())).thenReturn(savedBuild);
         doNothing().when(githubService).updateCommitStatus(any(UpdateCommitStatusDto.class));
-        doNothing().when(buildExecutorService).executeBuild(any(Build.class), any(Job.class));
+        doNothing().when(knullExecutor).executeBuild(any(Build.class), any(Job.class));
         doNothing().when(buildRepository).updateBuild(any(Build.class));
 
         // Act
@@ -149,7 +153,7 @@ class ExecuteBuildCommandHandlerImplTest {
 
         when(buildRepository.saveBuild(any(Build.class))).thenReturn(savedBuild);
         doNothing().when(githubService).updateCommitStatus(statusCaptor.capture());
-        doNothing().when(buildExecutorService).executeBuild(any(Build.class), any(Job.class));
+        doNothing().when(knullExecutor).executeBuild(any(Build.class), any(Job.class));
         doNothing().when(buildRepository).updateBuild(any(Build.class));
 
         // Act
@@ -170,7 +174,7 @@ class ExecuteBuildCommandHandlerImplTest {
 
         when(buildRepository.saveBuild(any(Build.class))).thenReturn(savedBuild);
         doNothing().when(githubService).updateCommitStatus(statusCaptor.capture());
-        doNothing().when(buildExecutorService).executeBuild(any(Build.class), any(Job.class));
+        doNothing().when(knullExecutor).executeBuild(any(Build.class), any(Job.class));
         doNothing().when(buildRepository).updateBuild(any(Build.class));
 
         // Act
@@ -188,7 +192,7 @@ class ExecuteBuildCommandHandlerImplTest {
 
         when(buildRepository.saveBuild(any(Build.class))).thenReturn(savedBuild);
         doNothing().when(githubService).updateCommitStatus(statusCaptor.capture());
-        doThrow(new RuntimeException("Build failed")).when(buildExecutorService)
+        doThrow(new RuntimeException("Build failed")).when(knullExecutor)
                 .executeBuild(any(Build.class), any(Job.class));
         doNothing().when(buildRepository).updateBuild(any(Build.class));
 

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Knull CI - Dashboard</title>
     <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
 </head>
 
 <body class="bg-gray-100 text-gray-800">
@@ -13,7 +14,7 @@
     <div th:replace="~{layout/navbar :: body}"></div>
 
     <!-- Dashboard Container -->
-    <div class="ml-64 p-8">
+    <div id="main-content" class="main-content ml-64 p-8 transition-all duration-300">
         <div class="max-w-7xl mx-auto">
 
             <!-- Header -->
@@ -315,6 +316,10 @@
                                     <span th:if="${build.status.name() == 'PENDING'}"
                                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
                                         Pending
+                                    </span>
+                                    <span th:if="${build.status.name() == 'CANCELLED'}"
+                                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-200 text-gray-700">
+                                        Cancelled
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

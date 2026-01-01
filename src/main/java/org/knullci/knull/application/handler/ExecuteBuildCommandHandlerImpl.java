@@ -74,7 +74,7 @@ public class ExecuteBuildCommandHandlerImpl implements ExecuteBuildCommandHandle
         try {
             // Execute the build using BuildExecutorService
             logger.info("Executing build for job: {}", command.getJob().getName());
-//            buildExecutorService.executeBuild(build, command.getJob());
+            // buildExecutorService.executeBuild(build, command.getJob());
             knullExecutor.executeBuild(build, command.getJob());
 
             // Consolidate build logs from steps
@@ -112,9 +112,13 @@ public class ExecuteBuildCommandHandlerImpl implements ExecuteBuildCommandHandle
         } catch (Exception e) {
             logger.error("Build {} failed: {}", build.getId(), e.getMessage(), e);
 
+            // Check if the build was cancelled - if so, don't overwrite the status
+            Build currentBuild = buildRepository.findById(build.getId()).orElse(build);
+            boolean wasCancelled = currentBuild.getStatus() == BuildStatus.CANCELLED;
+
             // Consolidate build logs from steps even on failure
-            StringBuilder consolidatedLog = new StringBuilder(build.getBuildLog());
-            build.getSteps().forEach(step -> {
+            StringBuilder consolidatedLog = new StringBuilder(currentBuild.getBuildLog());
+            currentBuild.getSteps().forEach(step -> {
                 consolidatedLog.append("\n=== ").append(step.getName()).append(" ===\n");
                 consolidatedLog.append("Status: ").append(step.getStatus()).append("\n");
                 if (step.getOutput() != null) {
@@ -125,22 +129,27 @@ public class ExecuteBuildCommandHandlerImpl implements ExecuteBuildCommandHandle
                 }
             });
 
-            // Update build status to FAILURE
-            build.setStatus(BuildStatus.FAILURE);
-            build.setCompletedAt(new Date());
-            build.setDuration(build.getCompletedAt().getTime() - build.getStartedAt().getTime());
-            build.setBuildLog(consolidatedLog.toString() + "\nBuild failed: " + e.getMessage());
-            buildRepository.updateBuild(build);
+            // Only update status if not already cancelled
+            if (!wasCancelled) {
+                currentBuild.setStatus(BuildStatus.FAILURE);
+                currentBuild.setCompletedAt(new Date());
+                currentBuild
+                        .setDuration(currentBuild.getCompletedAt().getTime() - currentBuild.getStartedAt().getTime());
+                currentBuild.setBuildLog(consolidatedLog.toString() + "\nBuild failed: " + e.getMessage());
+                buildRepository.updateBuild(currentBuild);
 
-            // Update GitHub status to FAILURE
-            githubService.updateCommitStatus(new UpdateCommitStatusDto(
-                    command.getRepositoryOwner(),
-                    command.getRepositoryName(),
-                    command.getCommitSha(),
-                    GHCommitState.FAILURE,
-                    "http://localhost:8080/builds/" + build.getId() + "/pipeline",
-                    "Build #" + build.getId() + " failed",
-                    KnullConstant.BUILD_CONTEXT));
+                // Update GitHub status to FAILURE
+                githubService.updateCommitStatus(new UpdateCommitStatusDto(
+                        command.getRepositoryOwner(),
+                        command.getRepositoryName(),
+                        command.getCommitSha(),
+                        GHCommitState.FAILURE,
+                        "http://localhost:8080/builds/" + currentBuild.getId() + "/pipeline",
+                        "Build #" + currentBuild.getId() + " failed",
+                        KnullConstant.BUILD_CONTEXT));
+            } else {
+                logger.info("Build {} was cancelled, not overwriting status to FAILURE", currentBuild.getId());
+            }
         }
     }
 }

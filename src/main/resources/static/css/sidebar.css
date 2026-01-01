@@ -1,0 +1,145 @@
+/* Sidebar Responsive Styles */
+
+/* Sidebar default state (expanded) */
+.sidebar {
+    width: 16rem;
+    /* 256px = w-64 */
+    left: 0;
+    transition: width 0.3s ease;
+}
+
+/* Collapsed state */
+.sidebar.collapsed {
+    width: 5rem;
+    /* 80px */
+}
+
+/* Hide text elements when collapsed */
+.sidebar.collapsed .sidebar-text,
+.sidebar.collapsed .nav-text,
+.sidebar.collapsed .logout-text,
+.sidebar.collapsed .sidebar-toggle-btn {
+    opacity: 0;
+    max-width: 0;
+    overflow: hidden;
+    visibility: hidden;
+    white-space: nowrap;
+}
+
+/* Center icons when collapsed */
+.sidebar.collapsed .nav-link {
+    justify-content: center;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+/* Prevent nav links from shrinking */
+.sidebar .nav-link {
+    flex-shrink: 0;
+}
+
+/* Ensure SVG icons maintain size */
+.sidebar .nav-link svg,
+.sidebar .logout-btn svg,
+.sidebar-logo {
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.sidebar-logo {
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+}
+
+/* Adjust header when collapsed */
+.sidebar.collapsed .sidebar-header {
+    justify-content: center;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+}
+
+/* Adjust footer when collapsed */
+.sidebar.collapsed .sidebar-footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.sidebar.collapsed .sidebar-footer>div {
+    justify-content: center;
+}
+
+.sidebar.collapsed .sidebar-footer .flex-1 {
+    display: none;
+}
+
+/* Center logout button in collapsed state */
+.sidebar.collapsed .logout-btn {
+    justify-content: center;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+/* Rotate the toggle icon when collapsed */
+.sidebar.collapsed #sidebar-toggle-desktop svg {
+    transform: rotate(180deg);
+}
+
+/* Mobile: sidebar starts hidden */
+@media (max-width: 767px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+}
+
+/* Smooth transitions */
+.sidebar-text,
+.nav-text,
+.logout-text,
+.sidebar-toggle-btn {
+    transition: opacity 0.3s ease, max-width 0.3s ease, visibility 0.3s;
+}
+
+#sidebar-toggle-desktop svg {
+    transition: transform 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    display: block;
+}
+
+/* Main content responsive margins */
+.main-content {
+    margin-left: 16rem;
+    /* Default: sidebar width (w-64) */
+    transition: margin-left 0.3s ease;
+}
+
+.main-content.sidebar-collapsed {
+    margin-left: 5rem;
+    /* Collapsed sidebar width (w-20) */
+}
+
+/* Mobile: no left margin as sidebar is off-canvas */
+@media (max-width: 767px) {
+    .main-content {
+        margin-left: 0 !important;
+        padding-top: 4rem;
+        /* Space for hamburger button */
+    }
+}
+
+/* Tablet: account for sidebar */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .main-content {
+        margin-left: 16rem;
+    }
+
+    .main-content.sidebar-collapsed {
+        margin-left: 5rem;
+    }
+}

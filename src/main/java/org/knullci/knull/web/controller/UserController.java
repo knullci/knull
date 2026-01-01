@@ -1,10 +1,14 @@
 package org.knullci.knull.web.controller;
 
 import org.knullci.knull.application.command.CreateUserCommand;
+import org.knullci.knull.application.command.DeleteUserCommand;
+import org.knullci.knull.application.command.ToggleUserLockCommand;
 import org.knullci.knull.application.command.UpdateUserCommand;
 import org.knullci.knull.application.dto.UserDto;
 import org.knullci.knull.application.handler.CreateUserCommandHandler;
 import org.knullci.knull.application.handler.UpdateUserCommandHandler;
+import org.knullci.knull.application.interfaces.DeleteUserCommandHandler;
+import org.knullci.knull.application.interfaces.ToggleUserLockCommandHandler;
 import org.knullci.knull.domain.enums.Permission;
 import org.knullci.knull.domain.enums.Role;
 import org.knullci.knull.domain.model.User;
@@ -35,13 +39,19 @@ public class UserController {
     private final UserRepository userRepository;
     private final CreateUserCommandHandler createUserCommandHandler;
     private final UpdateUserCommandHandler updateUserCommandHandler;
+    private final DeleteUserCommandHandler deleteUserCommandHandler;
+    private final ToggleUserLockCommandHandler toggleUserLockCommandHandler;
 
     public UserController(UserRepository userRepository,
             CreateUserCommandHandler createUserCommandHandler,
-            UpdateUserCommandHandler updateUserCommandHandler) {
+            UpdateUserCommandHandler updateUserCommandHandler,
+            DeleteUserCommandHandler deleteUserCommandHandler,
+            ToggleUserLockCommandHandler toggleUserLockCommandHandler) {
         this.userRepository = userRepository;
         this.createUserCommandHandler = createUserCommandHandler;
         this.updateUserCommandHandler = updateUserCommandHandler;
+        this.deleteUserCommandHandler = deleteUserCommandHandler;
+        this.toggleUserLockCommandHandler = toggleUserLockCommandHandler;
     }
 
     @GetMapping
@@ -155,7 +165,7 @@ public class UserController {
         logger.info("Deleting user: {}", id);
 
         try {
-            userRepository.deleteById(id);
+            deleteUserCommandHandler.handle(new DeleteUserCommand(id));
             redirectAttributes.addFlashAttribute("successMessage", "User deleted successfully!");
         } catch (Exception e) {
             logger.error("Failed to delete user", e);
@@ -170,22 +180,9 @@ public class UserController {
         logger.info("Toggling lock status for user: {}", id);
 
         try {
-            User user = userRepository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
-
-            UpdateUserCommand command = new UpdateUserCommand(
-                    id,
-                    user.getEmail(),
-                    user.getDisplayName(),
-                    user.getRole(),
-                    user.getAdditionalPermissions(),
-                    user.isActive(),
-                    !user.isAccountLocked() // Toggle lock status
-            );
-
-            updateUserCommandHandler.handle(command);
+            boolean isNowLocked = toggleUserLockCommandHandler.handle(new ToggleUserLockCommand(id));
             redirectAttributes.addFlashAttribute("successMessage",
-                    user.isAccountLocked() ? "User unlocked!" : "User locked!");
+                    isNowLocked ? "User locked!" : "User unlocked!");
 
         } catch (Exception e) {
             logger.error("Failed to toggle user lock status", e);

@@ -51,7 +51,8 @@
     <!-- Clean Header -->
     <header class="bg-white border-b-4 flex-none shadow-sm" id="main-header" th:classappend="${build.status.name() == 'SUCCESS' ? 'border-green-500' : 
                           (build.status.name() == 'FAILURE' ? 'border-red-500' : 
-                          (build.status.name() == 'IN_PROGRESS' ? 'border-blue-500' : 'border-gray-300'))}">
+                          (build.status.name() == 'IN_PROGRESS' ? 'border-blue-500' : 
+                          (build.status.name() == 'CANCELLED' ? 'border-orange-500' : 'border-gray-300')))}">
         <div class="px-6 py-4 flex items-center justify-between">
             <div class="flex items-center gap-6">
                 <a th:href="@{/builds}" class="text-gray-600 hover:text-black transition">
@@ -86,8 +87,21 @@
                     <span id="header-status-badge" class="px-3 py-1 text-xs font-semibold uppercase border-2 rounded"
                         th:classappend="${build.status.name() == 'SUCCESS' ? 'border-green-500 text-green-600 bg-green-50' : 
                                          (build.status.name() == 'FAILURE' ? 'border-red-500 text-red-600 bg-red-50' : 
-                                         (build.status.name() == 'IN_PROGRESS' ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-gray-300 text-gray-600 bg-gray-50'))}"
+                                         (build.status.name() == 'IN_PROGRESS' ? 'border-blue-500 text-blue-600 bg-blue-50' : 
+                                         (build.status.name() == 'CANCELLED' ? 'border-orange-500 text-orange-600 bg-orange-50' : 'border-gray-300 text-gray-600 bg-gray-50')))}"
                         th:text="${build.status}">PENDING</span>
+                    <!-- Cancel Button (shown only when build is in progress) -->
+                    <button id="cancel-build-btn" onclick="cancelBuild()"
+                        class="px-3 py-1 text-xs font-semibold uppercase border-2 rounded border-red-500 text-red-600 bg-red-50 hover:bg-red-100 transition"
+                        th:classappend="${build.status.name() != 'IN_PROGRESS' ? 'hidden' : ''}">
+                        <span class="flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Cancel
+                        </span>
+                    </button>
                 </div>
             </div>
             <div class="flex items-center gap-6 text-sm text-gray-600">
@@ -324,6 +338,20 @@
 
         async function updateBuild(data) {
             console.log('Received build update:', data.status, 'Steps:', data.steps?.length);
+
+            // Check for new steps and render them if necessary
+            const pipelineContainer = document.getElementById('pipeline-container');
+            // Count step cards (direct children with data-step-index)
+            const existingSteps = pipelineContainer.querySelectorAll('div[data-step-index]').length;
+
+            if (data.steps && data.steps.length > existingSteps) {
+                console.log('Found new steps! Existing:', existingSteps, 'New total:', data.steps.length);
+                for (let i = existingSteps; i < data.steps.length; i++) {
+                    renderNewPipelineStep(data.steps[i], i);
+                    renderNewSidebarStep(data.steps[i], i);
+                }
+            }
+
             currentBuild = data;
 
             const header = document.getElementById('main-header');
@@ -341,10 +369,23 @@
             } else if (data.status === 'IN_PROGRESS') {
                 borderClass = 'border-blue-500';
                 badgeClass = 'border-blue-500 text-blue-600 bg-blue-50';
+            } else if (data.status === 'CANCELLED') {
+                borderClass = 'border-orange-500';
+                badgeClass = 'border-orange-500 text-orange-600 bg-orange-50';
             }
 
             header.className = 'bg-white border-b-4 flex-none shadow-sm ' + borderClass;
             badge.className = 'px-3 py-1 text-xs font-semibold uppercase border-2 rounded ' + badgeClass;
+
+            // Show/hide cancel button based on status
+            const cancelBtn = document.getElementById('cancel-build-btn');
+            if (cancelBtn) {
+                if (data.status === 'IN_PROGRESS') {
+                    cancelBtn.classList.remove('hidden');
+                } else {
+                    cancelBtn.classList.add('hidden');
+                }
+            }
 
             document.getElementById('header-duration').textContent = data.duration ? (data.duration / 1000).toFixed(1) + 's' : '-';
 
@@ -371,7 +412,7 @@
 
             // Stop polling when build is complete (case-insensitive check)
             const statusUpper = (data.status || '').toUpperCase();
-            if (statusUpper === 'SUCCESS' || statusUpper === 'FAILURE') {
+            if (statusUpper === 'SUCCESS' || statusUpper === 'FAILURE' || statusUpper === 'CANCELLED') {
                 console.log('Build complete, stopping polling. Status:', data.status);
                 if (pollHandle) {
                     clearInterval(pollHandle);
@@ -449,6 +490,68 @@
 
         let pollHandle = null;
         let eventSource = null;
+
+        function renderNewPipelineStep(step, index) {
+            const container = document.getElementById('pipeline-container');
+
+            // Add connector if not the first step
+            if (index > 0) {
+                const connector = document.createElement('div');
+                connector.className = 'flex items-center';
+                connector.style.marginTop = '-50px';
+                connector.innerHTML = '<div class="h-1 w-10 transition-colors bg-gray-300"></div>';
+                container.appendChild(connector);
+            }
+
+            // basic step HTML
+            const stepDiv = document.createElement('div');
+            stepDiv.className = 'flex flex-col items-center cursor-pointer group transition-all hover:scale-105';
+            stepDiv.dataset.stepIndex = index;
+            stepDiv.onclick = () => selectStep(index);
+
+            stepDiv.innerHTML = `
+                <div class="relative">
+                    <div class="w-12 h-12 rounded-full border-3 flex items-center justify-center transition-all shadow-md bg-white border-gray-300">
+                        <div class="text-center text-gray-400">
+                             <span class="text-base font-bold">${index + 1}</span>
+                        </div>
+                    </div>
+                    <div class="absolute -top-1 -right-1 w-5 h-5 bg-gray-800 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        <span>${index + 1}</span>
+                    </div>
+                </div>
+                <div class="mt-3 text-center" style="width: 120px;">
+                    <p class="text-sm font-semibold text-gray-800 truncate px-2">${step.name}</p>
+                    <p class="text-xs text-gray-500 mt-1" id="duration-${index}"></p>
+                </div>
+            `;
+
+            container.appendChild(stepDiv);
+        }
+
+        function renderNewSidebarStep(step, index) {
+            const list = document.getElementById('steps-list');
+
+            const card = document.createElement('div');
+            card.className = 'step-card p-3 border-2 border-gray-200 rounded cursor-pointer hover:border-gray-400 transition-all';
+            card.onclick = () => selectStep(index);
+            card.id = 'card-' + index;
+
+            card.innerHTML = `
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold text-gray-800">${step.name}</span>
+                    <div class="step-card-status text-xl">
+                        <span class="text-gray-400">○</span>
+                    </div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-500">
+                    <span>${step.status || 'PENDING'}</span>
+                    <span class="font-mono">-</span>
+                </div>
+            `;
+
+            list.appendChild(card);
+        }
 
         function startPolling() {
             // Check if build is already complete
@@ -572,6 +675,48 @@
         function copyLink() {
             navigator.clipboard.writeText(window.location.href);
             alert("Link copied!");
+        }
+
+        async function cancelBuild() {
+            if (!confirm('Are you sure you want to cancel this build?')) {
+                return;
+            }
+
+            const cancelBtn = document.getElementById('cancel-build-btn');
+            if (cancelBtn) {
+                cancelBtn.disabled = true;
+                cancelBtn.innerHTML = '<span class="flex items-center gap-1"><svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Cancelling...</span>';
+            }
+
+            try {
+                const response = await fetch('/builds/' + buildId + '/cancel', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+                console.log('Cancel response:', result);
+
+                if (result.success) {
+                    console.log('Build cancelled successfully');
+                    // The polling will pick up the status change
+                } else {
+                    alert('Failed to cancel build: ' + (result.message || result.error || 'Unknown error'));
+                    if (cancelBtn) {
+                        cancelBtn.disabled = false;
+                        cancelBtn.innerHTML = '<span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>Cancel</span>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error cancelling build:', error);
+                alert('Error cancelling build: ' + error.message);
+                if (cancelBtn) {
+                    cancelBtn.disabled = false;
+                    cancelBtn.innerHTML = '<span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>Cancel</span>';
+                }
+            }
         }
 
         // Debug: Log when page loads

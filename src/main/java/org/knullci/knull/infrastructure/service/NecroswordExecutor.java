@@ -11,7 +11,6 @@ import org.knullci.knull.domain.model.Credentials;
 import org.knullci.knull.domain.model.Job;
 import org.knullci.knull.domain.repository.BuildRepository;
 import org.knullci.knull.domain.repository.CredentialRepository;
-import org.knullci.knull.infrastructure.knullpojo.v1.JobConfigYaml;
 import org.knullci.knull.infrastructure.knullpojo.v1.JobStep;
 import org.knullci.knull.infrastructure.knullpojo.v1.JobYaml;
 import org.knullci.knull.proto.*;
@@ -24,7 +23,11 @@ import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -39,6 +42,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * - Better error handling and timeout management
  */
 @Service
+// @Profile("on-server")
 public class NecroswordExecutor implements KnullExecutor {
 
     private static final Logger logger = LoggerFactory.getLogger(NecroswordExecutor.class);
@@ -51,6 +55,11 @@ public class NecroswordExecutor implements KnullExecutor {
     private final BuildRepository buildRepository;
     private final EncryptionService encryptionService;
     private final ObjectMapper yamlObjectMapper;
+
+    // Track running builds for cancellation support
+    private final Map<Long, AtomicBoolean> runningBuilds = new ConcurrentHashMap<>();
+    // Track pipeline IDs for each build to enable gRPC cancellation
+    private final Map<Long, String> buildPipelineIds = new ConcurrentHashMap<>();
 
     @Value("${knull.workspace.base-path:/tmp/knull-workspace}")
     private String workspaceBasePath;
@@ -84,7 +93,20 @@ public class NecroswordExecutor implements KnullExecutor {
 
     @PostConstruct
     public void init() {
+        normalizeWorkspacePath();
         initializeGrpcChannel();
+    }
+
+    private void normalizeWorkspacePath() {
+        // Convert relative path to absolute path and normalize
+        Path path = Paths.get(workspaceBasePath);
+        if (!path.isAbsolute()) {
+            // Resolve relative path against current working directory
+            path = Paths.get(System.getProperty("user.dir")).resolve(path);
+        }
+        // Normalize to remove redundant elements like /./
+        workspaceBasePath = path.normalize().toAbsolutePath().toString();
+        logger.info("Workspace base path: {}", workspaceBasePath);
     }
 
     private void initializeGrpcChannel() {
@@ -136,15 +158,24 @@ public class NecroswordExecutor implements KnullExecutor {
     public void executeBuild(Build build, Job job) {
         logger.info("Starting build execution for build ID: {} using Necrosword gRPC pipeline", build.getId());
 
+        // Register build for cancellation tracking
+        AtomicBoolean cancelled = new AtomicBoolean(false);
+        runningBuilds.put(build.getId(), cancelled);
+
         String workspaceDir = workspaceBasePath + "/build-" + build.getId();
         String repoDir = workspaceDir + "/" + build.getRepositoryName();
 
         try {
             // Phase 1: Prepare workspace and clone repository (setup steps)
-            executeSetupPhase(build, job, workspaceDir, repoDir);
+            executeSetupPhase(build, job, workspaceDir, repoDir, cancelled);
+
+            // Check for cancellation between phases
+            if (cancelled.get()) {
+                throw new RuntimeException("Build cancelled by user");
+            }
 
             // Phase 2: Execute the build pipeline from job configuration
-            executeBuildPipeline(build, job, repoDir);
+            executeBuildPipeline(build, job, repoDir, cancelled);
 
             logger.info("Build execution completed successfully for build ID: {}", build.getId());
 
@@ -152,9 +183,53 @@ public class NecroswordExecutor implements KnullExecutor {
             logger.error("Build execution failed for build ID: {}", build.getId(), e);
             throw new RuntimeException("Build execution failed: " + e.getMessage(), e);
         } finally {
+            // Remove from running builds
+            runningBuilds.remove(build.getId());
             // Cleanup workspace if configured
             cleanupIfRequired(build, job, workspaceDir);
         }
+    }
+
+    /**
+     * Cancel a running build by ID.
+     * 
+     * @param buildId the build ID to cancel
+     * @return true if the build was cancelled, false if not running
+     */
+    public boolean cancelBuild(Long buildId) {
+        AtomicBoolean cancelled = runningBuilds.get(buildId);
+        if (cancelled != null) {
+            cancelled.set(true);
+            logger.info("Build {} marked for cancellation", buildId);
+
+            // Also call gRPC to cancel the pipeline in Necrosword
+            String pipelineId = buildPipelineIds.get(buildId);
+            if (pipelineId != null) {
+                try {
+                    CancelPipelineRequest request = CancelPipelineRequest.newBuilder()
+                            .setPipelineId(pipelineId)
+                            .build();
+                    CancelPipelineResponse response = blockingStub.cancelPipeline(request);
+                    logger.info(
+                            "CancelPipeline gRPC response for build {}: success={}, message={}, cancelledProcesses={}",
+                            buildId, response.getSuccess(), response.getMessage(),
+                            response.getCancelledProcesses());
+                } catch (Exception e) {
+                    logger.warn("Failed to call CancelPipeline gRPC for build {}: {}", buildId, e.getMessage());
+                }
+            }
+
+            return true;
+        }
+        logger.warn("Build {} not found in running builds for cancellation", buildId);
+        return false;
+    }
+
+    /**
+     * Check if a build is currently running.
+     */
+    public boolean isBuildRunning(Long buildId) {
+        return runningBuilds.containsKey(buildId);
     }
 
     /**
@@ -162,7 +237,8 @@ public class NecroswordExecutor implements KnullExecutor {
      * Note: We DON'T set workspaceDir on the pipeline because we're creating it in
      * the first step.
      */
-    private void executeSetupPhase(Build build, Job job, String workspaceDir, String repoDir) throws Exception {
+    private void executeSetupPhase(Build build, Job job, String workspaceDir, String repoDir, AtomicBoolean cancelled)
+            throws Exception {
         logger.info("Executing setup phase for build ID: {}", build.getId());
 
         // Build setup pipeline steps
@@ -217,13 +293,13 @@ public class NecroswordExecutor implements KnullExecutor {
                 .setTimeoutSeconds(600) // 10 minutes for setup
                 .build();
 
-        executePipelineWithStreaming(build, setupPipeline, "Setup");
+        executePipelineWithStreaming(build, setupPipeline, "Setup", cancelled);
     }
 
     /**
      * Execute the main build pipeline from job configuration.
      */
-    private void executeBuildPipeline(Build build, Job job, String repoDir) throws Exception {
+    private void executeBuildPipeline(Build build, Job job, String repoDir, AtomicBoolean cancelled) throws Exception {
         logger.info("Executing build pipeline for build ID: {}", build.getId());
 
         // Load the job YAML configuration
@@ -273,16 +349,20 @@ public class NecroswordExecutor implements KnullExecutor {
                 .setTimeoutSeconds(DEFAULT_PIPELINE_TIMEOUT_SECONDS)
                 .build();
 
-        executePipelineWithStreaming(build, buildPipeline, "Build");
+        executePipelineWithStreaming(build, buildPipeline, "Build", cancelled);
     }
 
     /**
      * Execute a pipeline using gRPC streaming for real-time log updates.
      */
-    private void executePipelineWithStreaming(Build build, PipelineRequest pipelineRequest, String phaseName)
+    private void executePipelineWithStreaming(Build build, PipelineRequest pipelineRequest, String phaseName,
+            AtomicBoolean cancelled)
             throws Exception {
         logger.info("Executing {} pipeline with {} steps for build ID: {}",
                 phaseName, pipelineRequest.getStepsCount(), build.getId());
+
+        // Store pipeline ID for cancellation support
+        buildPipelineIds.put(build.getId(), pipelineRequest.getId());
 
         CountDownLatch completionLatch = new CountDownLatch(1);
         AtomicBoolean success = new AtomicBoolean(true);
@@ -298,6 +378,12 @@ public class NecroswordExecutor implements KnullExecutor {
 
             @Override
             public void onNext(PipelineStreamResponse response) {
+                // Stop processing if build is cancelled
+                if (cancelled.get()) {
+                    logger.debug("Ignoring stream event - build is cancelled");
+                    return;
+                }
+
                 try {
                     if (response.hasStepStarted()) {
                         handleStepStarted(response.getStepStarted());
@@ -335,6 +421,10 @@ public class NecroswordExecutor implements KnullExecutor {
             private void handleStepOutput(StepOutputEvent event) {
                 String line = event.hasStdoutLine() ? event.getStdoutLine() : event.getStderrLine();
                 currentStepOutput.append(line).append("\n");
+
+                if (currentBuildStep != null) {
+                    currentBuildStep.setOutput(currentStepOutput.toString());
+                }
 
                 // Real-time log update
                 appendToBuildLog(build, line + "\n");
@@ -425,11 +515,27 @@ public class NecroswordExecutor implements KnullExecutor {
         // Execute the pipeline with streaming
         asyncStub.executePipelineStream(pipelineRequest, responseObserver);
 
-        // Wait for completion with timeout
-        boolean completed = completionLatch.await(DEFAULT_PIPELINE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        if (!completed) {
-            throw new RuntimeException(
-                    phaseName + " pipeline timed out after " + DEFAULT_PIPELINE_TIMEOUT_SECONDS + " seconds");
+        // Wait for completion with timeout, checking for cancellation
+        while (!completionLatch.await(500, TimeUnit.MILLISECONDS)) {
+            // Check for cancellation
+            if (cancelled.get()) {
+                logger.info("Build {} cancelled during {} pipeline", build.getId(), phaseName);
+                // Mark any running step as cancelled
+                build.getSteps().stream()
+                        .filter(s -> s.getStatus() == BuildStepStatus.IN_PROGRESS)
+                        .forEach(s -> {
+                            s.setStatus(BuildStepStatus.FAILURE);
+                            s.setErrorMessage("Build cancelled by user");
+                            s.setCompletedAt(new Date());
+                        });
+                buildRepository.updateBuild(build);
+                throw new RuntimeException("Build cancelled by user");
+            }
+        }
+
+        // Check for cancellation after completion
+        if (cancelled.get()) {
+            throw new RuntimeException("Build cancelled by user");
         }
 
         if (!success.get()) {
@@ -441,6 +547,11 @@ public class NecroswordExecutor implements KnullExecutor {
     }
 
     private void appendToBuildLog(Build build, String text) {
+        // Don't update if build is cancelled
+        AtomicBoolean cancelled = runningBuilds.get(build.getId());
+        if (cancelled != null && cancelled.get()) {
+            return;
+        }
         String currentLog = build.getBuildLog() != null ? build.getBuildLog() : "";
         build.setBuildLog(currentLog + text);
         buildRepository.updateBuild(build);
@@ -465,6 +576,10 @@ public class NecroswordExecutor implements KnullExecutor {
 
                 logger.info("Workspace cleanup completed for build ID: {}", build.getId());
 
+                // Re-fetch the build from database to get the latest status (may have been
+                // cancelled)
+                Build currentBuild = buildRepository.findById(build.getId()).orElse(build);
+
                 // Add cleanup step to build
                 org.knullci.knull.domain.model.BuildStep cleanupStep = new org.knullci.knull.domain.model.BuildStep();
                 cleanupStep.setName("Cleanup Workspace");
@@ -472,7 +587,10 @@ public class NecroswordExecutor implements KnullExecutor {
                 cleanupStep.setOutput("Workspace cleaned up: " + workspaceDir);
                 cleanupStep.setStartedAt(new Date());
                 cleanupStep.setCompletedAt(new Date());
-                build.getSteps().add(cleanupStep);
+                currentBuild.getSteps().add(cleanupStep);
+
+                // Save to repository so it shows in UI
+                buildRepository.updateBuild(currentBuild);
             } else {
                 logger.info("Workspace already clean for build ID: {}", build.getId());
             }

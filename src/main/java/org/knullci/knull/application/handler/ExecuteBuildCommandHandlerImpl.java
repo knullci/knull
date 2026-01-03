@@ -8,7 +8,6 @@ import org.knullci.knull.domain.model.Build;
 import org.knullci.knull.domain.repository.BuildRepository;
 import org.knullci.knull.infrastructure.dto.UpdateCommitStatusDto;
 import org.knullci.knull.infrastructure.enums.GHCommitState;
-import org.knullci.knull.infrastructure.service.BuildExecutorService;
 import org.knullci.knull.infrastructure.service.GithubService;
 import org.knullci.knull.infrastructure.service.KnullExecutor;
 import org.slf4j.Logger;
@@ -25,15 +24,13 @@ public class ExecuteBuildCommandHandlerImpl implements ExecuteBuildCommandHandle
 
     private final BuildRepository buildRepository;
     private final GithubService githubService;
-    private final BuildExecutorService buildExecutorService;
     private final KnullExecutor knullExecutor;
 
     public ExecuteBuildCommandHandlerImpl(BuildRepository buildRepository,
             GithubService githubService,
-            BuildExecutorService buildExecutorService, KnullExecutor knullExecutor) {
+            KnullExecutor knullExecutor) {
         this.buildRepository = buildRepository;
         this.githubService = githubService;
-        this.buildExecutorService = buildExecutorService;
         this.knullExecutor = knullExecutor;
     }
 
@@ -72,9 +69,7 @@ public class ExecuteBuildCommandHandlerImpl implements ExecuteBuildCommandHandle
                 KnullConstant.BUILD_CONTEXT));
 
         try {
-            // Execute the build using BuildExecutorService
             logger.info("Executing build for job: {}", command.getJob().getName());
-            // buildExecutorService.executeBuild(build, command.getJob());
             knullExecutor.executeBuild(build, command.getJob());
 
             // Consolidate build logs from steps

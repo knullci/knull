@@ -103,11 +103,7 @@ public class SystemMetricsService {
 
             // Get page counts from vm_stat
             long freePages = vmStats.getOrDefault("Pages free", 0L);
-            long activePages = vmStats.getOrDefault("Pages active", 0L);
-            long inactivePages = vmStats.getOrDefault("Pages inactive", 0L);
-            long speculativePages = vmStats.getOrDefault("Pages speculative", 0L);
             long wiredPages = vmStats.getOrDefault("Pages wired down", 0L);
-            long purgeablePages = vmStats.getOrDefault("Pages purgeable", 0L);
             long fileBackedPages = vmStats.getOrDefault("File-backed pages", 0L);
             long anonymousPages = vmStats.getOrDefault("Anonymous pages", 0L);
             // "Pages occupied by compressor" is the ACTUAL memory used by the compressor
@@ -115,11 +111,7 @@ public class SystemMetricsService {
 
             // Convert to bytes
             long free = freePages * pageSize;
-            long active = activePages * pageSize;
-            long inactive = inactivePages * pageSize;
-            long speculative = speculativePages * pageSize;
             long wired = wiredPages * pageSize;
-            long purgeable = purgeablePages * pageSize;
             long fileBacked = fileBackedPages * pageSize;
             long anonymous = anonymousPages * pageSize;
             long compressed = compressorPages * pageSize;

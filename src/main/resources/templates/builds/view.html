@@ -278,107 +278,218 @@
                             th:text="${section == 'overview'} ? 'Overview' : (${section == 'steps'} ? 'Build Steps' : (${section == 'logs'} ? 'Full Logs' : 'Pipeline'))"></span>
                     </nav>
 
-                    <!-- Pipeline Section -->
+                    <!-- Premium Pipeline Section -->
                     <section id="pipeline" class="build-section"
                         th:classappend="${section == 'pipeline'} ? ' active' : ''">
-                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Pipeline</h2>
+
+                        <!-- Premium Header with Gradient -->
+                        <div class="flex items-center justify-between mb-8">
+                            <div>
+                                <h2
+                                    class="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                                    Pipeline Visualization
+                                </h2>
+                                <p class="text-gray-600">Real-time execution flow</p>
+                            </div>
+                        </div>
 
                         <div th:if="${build.steps != null && !build.steps.empty}">
-                            <!-- Compact summary -->
-                            <div class="bg-white rounded-lg border border-gray-200 p-6 shadow-sm mb-6">
-                                <div class="flex items-center justify-between mb-4">
-                                    <div class="space-y-1">
-                                        <p class="text-sm text-gray-600">Stage summary</p>
-                                        <p class="text-lg font-semibold text-gray-900"><span id="summary-total"
-                                                th:text="${build.steps.size()}"></span> stages</p>
+                            <!-- Premium Stats Dashboard -->
+                            <div class="grid grid-cols-4 gap-4 mb-8">
+                                <div
+                                    class="relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                                    <div
+                                        class="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white opacity-10">
                                     </div>
-                                    <div class="flex items-center gap-3 text-sm" id="summary-badges">
-                                        <span class="px-2 py-1 rounded-full bg-green-100 text-green-800"
-                                            id="summary-success"
-                                            th:text="'Success ' + ${#lists.size(build.steps.?[status.name() == 'SUCCESS'])}"></span>
-                                        <span class="px-2 py-1 rounded-full bg-red-100 text-red-800" id="summary-failed"
-                                            th:text="'Failed ' + ${#lists.size(build.steps.?[status.name() == 'FAILURE'])}"></span>
-                                        <span class="px-2 py-1 rounded-full bg-blue-100 text-blue-800"
-                                            id="summary-running"
-                                            th:text="'Running ' + ${#lists.size(build.steps.?[status.name() == 'IN_PROGRESS'])}"></span>
-                                        <span class="px-2 py-1 rounded-full bg-gray-100 text-gray-800"
-                                            id="summary-pending"
-                                            th:text="'Pending ' + ${#lists.size(build.steps.?[status.name() == 'PENDING'])}"></span>
+                                    <div class="relative">
+                                        <svg class="h-8 w-8 mb-2 opacity-90" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        <p class="text-3xl font-bold" id="summary-success-count"
+                                            th:text="${#lists.size(build.steps.?[status.name() == 'SUCCESS'])}">0</p>
+                                        <p class="text-sm opacity-90 font-medium">Successful</p>
                                     </div>
                                 </div>
 
-                                <!-- Horizontal pipeline rail (single row, scrollable) -->
-                                <div class="relative overflow-x-auto pb-4">
-                                    <div class="flex items-center gap-4 flex-nowrap min-w-max">
-                                        <div class="flex items-center gap-4" th:each="step, iter : ${build.steps}"
-                                            th:attr="data-pipeline-step-index=${iter.index}">
-                                            <div class="flex items-center gap-3 min-w-[160px]">
-                                                <div class="pipeline-step-bubble h-6 w-6 rounded-full border-2 shadow-sm transition-all duration-300"
-                                                    th:classappend="${step.status.name() == 'SUCCESS'} ? ' border-green-500 bg-green-500' :
-                                                                (${step.status.name() == 'FAILURE'} ? ' border-red-500 bg-red-500' :
-                                                                (${step.status.name() == 'IN_PROGRESS'} ? ' border-blue-500 bg-blue-500 animate-pulse' : ' border-gray-300 bg-white'))">
-                                                </div>
-                                                <div>
-                                                    <p class="text-sm font-semibold text-gray-900"
-                                                        th:text="${step.name}"></p>
-                                                    <p class="pipeline-step-duration text-xs text-gray-500"
-                                                        th:text="${step.duration != null} ? ${step.duration / 1000.0} + 's' : 'pending'">
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div class="pipeline-step-connector h-0.5 w-16 transition-colors duration-300"
-                                                th:if="${!iter.last}"
-                                                th:classappend="${step.status.name() == 'FAILURE'} ? ' bg-red-200' :
-                                                             (${step.status.name() == 'IN_PROGRESS'} ? ' bg-blue-200' : ' bg-gray-200')">
-                                            </div>
-                                        </div>
+                                <div
+                                    class="relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-red-500 to-pink-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                                    <div
+                                        class="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white opacity-10">
+                                    </div>
+                                    <div class="relative">
+                                        <svg class="h-8 w-8 mb-2 opacity-90" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                        <p class="text-3xl font-bold" id="summary-failed-count"
+                                            th:text="${#lists.size(build.steps.?[status.name() == 'FAILURE'])}">0</p>
+                                        <p class="text-sm opacity-90 font-medium">Failed</p>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                                    <div
+                                        class="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white opacity-10 animate-pulse">
+                                    </div>
+                                    <div class="relative">
+                                        <svg class="h-8 w-8 mb-2 opacity-90 animate-spin" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                            </path>
+                                        </svg>
+                                        <p class="text-3xl font-bold" id="summary-running-count"
+                                            th:text="${#lists.size(build.steps.?[status.name() == 'IN_PROGRESS'])}">0
+                                        </p>
+                                        <p class="text-sm opacity-90 font-medium">Running</p>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-gray-500 to-gray-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                                    <div
+                                        class="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white opacity-10">
+                                    </div>
+                                    <div class="relative">
+                                        <svg class="h-8 w-8 mb-2 opacity-90" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <p class="text-3xl font-bold" id="summary-pending-count"
+                                            th:text="${#lists.size(build.steps.?[status.name() == 'PENDING'])}">0</p>
+                                        <p class="text-sm opacity-90 font-medium">Pending</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Compact stage list (no logs) -->
-                            <div class="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100 shadow-sm">
-                                <div class="p-4 flex text-sm font-semibold text-gray-500">
-                                    <div class="w-8"></div>
-                                    <div class="flex-1">Stage</div>
-                                    <div class="w-32 text-right">Status</div>
-                                    <div class="w-24 text-right">Duration</div>
+                            <!-- Premium Vertical Pipeline Flow -->
+                            <div class="relative">
+                                <!-- Animated Background Gradient -->
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-b from-blue-50 via-purple-50 to-pink-50 rounded-2xl opacity-30">
                                 </div>
-                                <div th:each="step, iterStat : ${build.steps}" class="p-4 flex items-center text-sm"
-                                    th:attr="data-step-row-index=${iterStat.index}">
-                                    <div class="w-8">
-                                        <span
-                                            class="w-7 h-7 rounded-full flex items-center justify-center font-semibold"
-                                            th:classappend="${step.status.name() == 'SUCCESS'} ? ' bg-green-100 text-green-800' :
-                                                        (${step.status.name() == 'FAILURE'} ? ' bg-red-100 text-red-800' :
-                                                        (${step.status.name() == 'IN_PROGRESS'} ? ' bg-blue-100 text-blue-800' : ' bg-gray-100 text-gray-800'))"
-                                            th:text="${iterStat.count}"></span>
-                                    </div>
-                                    <div class="flex-1">
-                                        <p class="text-sm font-semibold text-gray-900" th:text="${step.name}"></p>
-                                    </div>
-                                    <div class="w-32 text-right">
-                                        <span th:if="${step.status.name() == 'SUCCESS'}"
-                                            class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Success</span>
-                                        <span th:if="${step.status.name() == 'FAILURE'}"
-                                            class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Failed</span>
-                                        <span th:if="${step.status.name() == 'IN_PROGRESS'}"
-                                            class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Running</span>
-                                        <span th:if="${step.status.name() == 'PENDING'}"
-                                            class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Pending</span>
-                                        <span th:if="${step.status.name() == 'SKIPPED'}"
-                                            class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Skipped</span>
-                                    </div>
-                                    <div class="w-24 text-right text-gray-700"
-                                        th:text="${step.duration != null} ? ${step.duration / 1000.0} + 's' : '-'">-
+
+                                <div class="relative space-y-4 p-6">
+                                    <div th:each="step, iter : ${build.steps}" class="pipeline-step-card group"
+                                        th:attr="data-pipeline-step-index=${iter.index}">
+
+                                        <!-- Step Card with Glassmorphism -->
+                                        <div class="relative flex items-start gap-6 p-6 rounded-2xl backdrop-blur-sm bg-white/80 border border-white/60 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] cursor-pointer"
+                                            th:classappend="${step.status.name() == 'SUCCESS'} ? ' border-l-4 border-l-green-500' :
+                                                         (${step.status.name() == 'FAILURE'} ? ' border-l-4 border-l-red-500' :
+                                                         (${step.status.name() == 'IN_PROGRESS'} ? ' border-l-4 border-l-blue-500 animate-pulse' : ' border-l-4 border-l-gray-300'))">
+
+                                            <!-- Step Number with Premium Design -->
+                                            <div class="flex-shrink-0">
+                                                <div class="relative w-16 h-16 rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg transform transition-transform duration-300 group-hover:scale-110"
+                                                    th:classappend="${step.status.name() == 'SUCCESS'} ? ' bg-gradient-to-br from-green-400 to-emerald-600 text-white' :
+                                                                 (${step.status.name() == 'FAILURE'} ? ' bg-gradient-to-br from-red-400 to-pink-600 text-white' :
+                                                                 (${step.status.name() == 'IN_PROGRESS'} ? ' bg-gradient-to-br from-blue-400 to-cyan-600 text-white' : ' bg-gradient-to-br from-gray-300 to-gray-400 text-gray-700'))">
+                                                    <span th:text="${iter.count}">1</span>
+
+                                                    <!-- Animated Ring for Running Steps -->
+                                                    <div th:if="${step.status.name() == 'IN_PROGRESS'}"
+                                                        class="absolute inset-0 rounded-2xl border-4 border-blue-400 animate-ping opacity-75">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Step Content -->
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-start justify-between gap-4 mb-3">
+                                                    <div class="flex-1">
+                                                        <h3 class="text-xl font-bold text-gray-900 mb-1"
+                                                            th:text="${step.name}">Step Name</h3>
+                                                        <div class="flex items-center gap-3 text-sm">
+                                                            <span
+                                                                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-semibold"
+                                                                th:classappend="${step.status.name() == 'SUCCESS'} ? ' bg-green-100 text-green-700' :
+                                                                              (${step.status.name() == 'FAILURE'} ? ' bg-red-100 text-red-700' :
+                                                                              (${step.status.name() == 'IN_PROGRESS'} ? ' bg-blue-100 text-blue-700' : ' bg-gray-100 text-gray-700'))">
+                                                                <svg th:if="${step.status.name() == 'SUCCESS'}"
+                                                                    class="h-4 w-4" fill="currentColor"
+                                                                    viewBox="0 0 20 20">
+                                                                    <path fill-rule="evenodd"
+                                                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                                        clip-rule="evenodd"></path>
+                                                                </svg>
+                                                                <svg th:if="${step.status.name() == 'FAILURE'}"
+                                                                    class="h-4 w-4" fill="currentColor"
+                                                                    viewBox="0 0 20 20">
+                                                                    <path fill-rule="evenodd"
+                                                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                                                        clip-rule="evenodd"></path>
+                                                                </svg>
+                                                                <svg th:if="${step.status.name() == 'IN_PROGRESS'}"
+                                                                    class="h-4 w-4 animate-spin" fill="none"
+                                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                        stroke-width="2"
+                                                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                                                    </path>
+                                                                </svg>
+                                                                <span class="pipeline-step-status"
+                                                                    th:text="${step.status.name() == 'SUCCESS'} ? 'Success' : (${step.status.name() == 'FAILURE'} ? 'Failed' : (${step.status.name() == 'IN_PROGRESS'} ? 'Running' : 'Pending'))">Success</span>
+                                                            </span>
+                                                            <span
+                                                                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-700 font-semibold">
+                                                                <svg class="h-4 w-4" fill="none" stroke="currentColor"
+                                                                    viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                        stroke-width="2"
+                                                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z">
+                                                                    </path>
+                                                                </svg>
+                                                                <span class="pipeline-step-duration"
+                                                                    th:text="${step.duration != null} ? ${step.duration / 1000.0} + 's' : 'pending'">2.5s</span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Progress Bar for Running Steps -->
+                                                <div th:if="${step.status.name() == 'IN_PROGRESS'}" class="mt-4">
+                                                    <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                                        <div class="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full animate-pulse"
+                                                            style="width: 60%"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Animated Connection Line (except for last) -->
+                                        <div th:if="${!iter.last}" class="flex justify-start pl-8 py-2">
+                                            <div class="w-0.5 h-8 rounded-full transition-all duration-500"
+                                                th:classappend="${step.status.name() == 'SUCCESS'} ? ' bg-gradient-to-b from-green-400 to-emerald-500' :
+                                                             (${step.status.name() == 'FAILURE'} ? ' bg-gradient-to-b from-red-400 to-pink-500' :
+                                                             (${step.status.name() == 'IN_PROGRESS'} ? ' bg-gradient-to-b from-blue-400 to-cyan-500 shadow-lg shadow-blue-500/50' : ' bg-gray-300'))">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div th:if="${build.steps == null || build.steps.empty}"
-                            class="bg-white rounded-lg border border-gray-200 text-center py-12 text-gray-500">
-                            <p class="text-lg">No pipeline data available</p>
+                            class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 text-center py-20">
+                            <div class="relative z-10">
+                                <div
+                                    class="w-24 h-24 mx-auto mb-4 rounded-full bg-gray-200 flex items-center justify-center">
+                                    <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <p class="text-xl font-semibold text-gray-600">No Pipeline Steps Found</p>
+                                <p class="text-gray-500 mt-2">This build doesn't have any pipeline data available</p>
+                            </div>
                         </div>
                     </section>
 
@@ -684,47 +795,54 @@
             bodyEl.setAttribute('data-build-status', statusName);
         }
 
+
         function updatePipeline(steps) {
             if (!steps) return;
             steps.forEach((step, idx) => {
-                const stepEl = document.querySelector(`[data-pipeline-step-index="${idx}"]`);
-                if (!stepEl) return;
+                const stepCard = document.querySelector(`[data-pipeline-step-index="${idx}"]`);
+                if (!stepCard) return;
 
                 const status = getStatusName(step.status);
 
-                // Update Bubble
-                const bubble = stepEl.querySelector('.pipeline-step-bubble');
-                if (bubble) {
-                    clearClasses(bubble, bubbleClasses);
-                    bubble.classList.add(...(bubbleClasses[status] || bubbleClasses.PENDING).split(' '));
-                }
-
-                // Update Connector (if exists)
-                const connector = stepEl.querySelector('.pipeline-step-connector');
-                if (connector) {
-                    // Connector logic: if this step is failed, the line after it might be red? 
-                    // Or usually the line *leading to* the next step. 
-                    // In the template, the connector is *after* the bubble.
-                    // If this step is FAILURE, connector is likely red.
-                    // If this step is IN_PROGRESS, connector might be blue (active path).
-                    let connClass = 'bg-gray-200';
-                    if (status === 'FAILURE') connClass = 'bg-red-200';
-                    else if (status === 'IN_PROGRESS') connClass = 'bg-blue-200';
-
-                    connector.className = `pipeline-step-connector h-0.5 w-16 transition-colors duration-300 ${connClass}`;
+                // Update step status badge
+                const statusBadge = stepCard.querySelector('.pipeline-step-status');
+                if (statusBadge) {
+                    const statusText = status === 'SUCCESS' ? 'Success' :
+                        (status === 'FAILURE' ? 'Failed' :
+                            (status === 'IN_PROGRESS' ? 'Running' : 'Pending'));
+                    statusBadge.textContent = statusText;
                 }
 
                 // Update Duration
-                const durEl = stepEl.querySelector('.pipeline-step-duration');
+                const durEl = stepCard.querySelector('.pipeline-step-duration');
                 if (durEl) {
-                    durEl.textContent = step.duration != null ? (step.duration / 1000).toFixed(1).replace(/\.0$/, '') + 's' : (status === 'PENDING' ? 'pending' : (status === 'IN_PROGRESS' ? 'running' : '-'));
+                    durEl.textContent = step.duration != null ?
+                        (step.duration / 1000).toFixed(1).replace(/\.0$/, '') + 's' :
+                        (status === 'PENDING' ? 'pending' : (status === 'IN_PROGRESS' ? 'running' : '-'));
+                }
+
+                // Update card classes for dynamic styling (border colors, animations)
+                const card = stepCard.querySelector('.relative.flex.items-start');
+                if (card) {
+                    // Remove existing border classes
+                    card.classList.remove('border-l-green-500', 'border-l-red-500', 'border-l-blue-500', 'border-l-gray-300', 'animate-pulse');
+
+                    // Add appropriate classes based on status
+                    if (status === 'SUCCESS') {
+                        card.classList.add('border-l-green-500');
+                    } else if (status === 'FAILURE') {
+                        card.classList.add('border-l-red-500');
+                    } else if (status === 'IN_PROGRESS') {
+                        card.classList.add('border-l-blue-500', 'animate-pulse');
+                    } else {
+                        card.classList.add('border-l-gray-300');
+                    }
                 }
             });
         }
 
         function updateSummary(steps) {
             if (!steps) return;
-            document.getElementById('summary-total').textContent = steps.length;
 
             const counts = { SUCCESS: 0, FAILURE: 0, IN_PROGRESS: 0, PENDING: 0 };
             steps.forEach(s => {
@@ -732,10 +850,16 @@
                 if (counts[st] !== undefined) counts[st]++;
             });
 
-            document.getElementById('summary-success').textContent = 'Success ' + counts.SUCCESS;
-            document.getElementById('summary-failed').textContent = 'Failed ' + counts.FAILURE;
-            document.getElementById('summary-running').textContent = 'Running ' + counts.IN_PROGRESS;
-            document.getElementById('summary-pending').textContent = 'Pending ' + counts.PENDING;
+            // Update premium dashboard cards
+            const successEl = document.getElementById('summary-success-count');
+            const failedEl = document.getElementById('summary-failed-count');
+            const runningEl = document.getElementById('summary-running-count');
+            const pendingEl = document.getElementById('summary-pending-count');
+
+            if (successEl) successEl.textContent = counts.SUCCESS;
+            if (failedEl) failedEl.textContent = counts.FAILURE;
+            if (runningEl) runningEl.textContent = counts.IN_PROGRESS;
+            if (pendingEl) pendingEl.textContent = counts.PENDING;
         }
 
         function updateSteps(steps) {

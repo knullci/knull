@@ -48,240 +48,519 @@
 
 <body class="bg-gray-50 h-screen flex flex-col overflow-hidden">
 
-    <!-- Clean Header -->
-    <header class="bg-white border-b-4 flex-none shadow-sm" id="main-header" th:classappend="${build.status.name() == 'SUCCESS' ? 'border-green-500' : 
-                          (build.status.name() == 'FAILURE' ? 'border-red-500' : 
-                          (build.status.name() == 'IN_PROGRESS' ? 'border-blue-500' : 
-                          (build.status.name() == 'CANCELLED' ? 'border-orange-500' : 'border-gray-300')))}">
-        <div class="px-6 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-6">
-                <a th:href="@{/builds}" class="text-gray-600 hover:text-black transition">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <!-- Compact Single-Line Header -->
+    <header class="bg-white border-b border-gray-200 flex-none shadow-sm" id="main-header">
+        <div class="px-6 py-3.5 flex items-center justify-between">
+            <!-- Left: Navigation & Title -->
+            <div class="flex items-center gap-4">
+                <a th:href="@{/builds}" class="p-1.5 rounded-lg hover:bg-gray-100 transition">
+                    <svg class="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                 </a>
-                <div class="flex items-center gap-4">
-                    <!-- Build Navigation -->
+
+                <div class="flex items-center gap-2">
+                    <button onclick="navigateToPreviousBuild()"
+                        class="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition"
+                        title="Previous">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+
                     <div class="flex items-center gap-2">
-                        <button onclick="navigateToPreviousBuild()"
-                            class="p-1 text-gray-400 hover:text-gray-600 transition" title="Previous Build">
-                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </button>
-                        <h1 class="text-lg font-semibold">
-                            <span class="text-gray-500" th:text="${build.repositoryName}"></span>
-                            <span class="text-gray-400 mx-2">/</span>
-                            <span th:text="'Build #' + ${build.id}"></span>
-                        </h1>
-                        <button onclick="navigateToNextBuild()" class="p-1 text-gray-400 hover:text-gray-600 transition"
-                            title="Next Build">
-                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 5l7 7-7 7" />
-                            </svg>
-                        </button>
+                        <span class="text-base font-semibold text-gray-900"
+                            th:text="${build.repositoryName}">motiv-server</span>
+                        <span class="text-gray-400">/</span>
+                        <span class="text-sm text-gray-600">Build</span>
+                        <span class="text-sm font-bold text-gray-900" th:text="'#' + ${build.id}">#74</span>
                     </div>
-                    <span id="header-status-badge" class="px-3 py-1 text-xs font-semibold uppercase border-2 rounded"
-                        th:classappend="${build.status.name() == 'SUCCESS' ? 'border-green-500 text-green-600 bg-green-50' : 
-                                         (build.status.name() == 'FAILURE' ? 'border-red-500 text-red-600 bg-red-50' : 
-                                         (build.status.name() == 'IN_PROGRESS' ? 'border-blue-500 text-blue-600 bg-blue-50' : 
-                                         (build.status.name() == 'CANCELLED' ? 'border-orange-500 text-orange-600 bg-orange-50' : 'border-gray-300 text-gray-600 bg-gray-50')))}"
-                        th:text="${build.status}">PENDING</span>
-                    <!-- Cancel Button (shown only when build is in progress) -->
-                    <button id="cancel-build-btn" onclick="cancelBuild()"
-                        class="px-3 py-1 text-xs font-semibold uppercase border-2 rounded border-red-500 text-red-600 bg-red-50 hover:bg-red-100 transition"
-                        th:classappend="${build.status.name() != 'IN_PROGRESS' ? 'hidden' : ''}">
-                        <span class="flex items-center gap-1">
-                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                            Cancel
-                        </span>
+
+                    <button onclick="navigateToNextBuild()"
+                        class="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition" title="Next">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
                     </button>
                 </div>
             </div>
-            <div class="flex items-center gap-6 text-sm text-gray-600">
-                <div class="flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+            <!-- Right: Metadata Badges -->
+            <div class="flex items-center gap-2.5">
+                <!-- Status Badge -->
+                <div id="header-status-badge"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
+                    th:classappend="${build.status.name() == 'SUCCESS' ? 'bg-green-100 text-green-700 border border-green-300' : 
+                                     (build.status.name() == 'FAILURE' ? 'bg-red-100 text-red-700 border border-red-300' : 
+                                     (build.status.name() == 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700 border border-blue-300' : 
+                                     (build.status.name() == 'CANCELLED' ? 'bg-orange-100 text-orange-700 border border-orange-300' : 'bg-gray-100 text-gray-700 border border-gray-300')))}">
+                    <span class="w-1.5 h-1.5 rounded-full"
+                        th:classappend="${build.status.name() == 'SUCCESS' ? 'bg-green-500' : 
+                                          (build.status.name() == 'FAILURE' ? 'bg-red-500' : 
+                                          (build.status.name() == 'IN_PROGRESS' ? 'bg-blue-500 animate-pulse' : 
+                                          (build.status.name() == 'CANCELLED' ? 'bg-orange-500' : 'bg-gray-500')))}"></span>
+                    <span th:text="${build.status}">CANCELLED</span>
+                </div>
+
+                <!-- Branch Badge -->
+                <div
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-50 border border-purple-200 text-xs font-medium text-purple-700">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                     </svg>
-                    <span th:text="${build.branch}"></span>
+                    <span th:text="${build.branch}">main</span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+                <!-- Commit Badge -->
+                <div
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 border border-gray-300 text-xs font-medium text-gray-700">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                     </svg>
-                    <span class="font-mono" th:text="${#strings.substring(build.commitSha, 0, 7)}"></span>
+                    <span class="font-mono" th:text="${#strings.substring(build.commitSha, 0, 7)}">4f67a72</span>
                 </div>
-                <div class="flex items-center gap-2 font-semibold">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+                <!-- Duration Badge -->
+                <div
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-xs font-semibold text-indigo-700">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span id="header-duration"
-                        th:text="${build.duration != null ? (build.duration/1000.0 + 's') : '-'}">-</span>
+                        th:text="${build.duration != null ? (build.duration/1000.0 + 's') : '-'}">4.5s</span>
                 </div>
+
+                <!-- Cancel Button -->
+                <button id="cancel-build-btn" onclick="cancelBuild()"
+                    class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-red-300 text-red-700 bg-red-50 hover:bg-red-100 transition"
+                    th:classappend="${build.status.name() != 'IN_PROGRESS' ? 'hidden' : ''}">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Cancel
+                    </span>
+                </button>
             </div>
         </div>
     </header>
 
-    <!-- Horizontal Pipeline - Improved Design -->
-    <div class="bg-white border-b border-gray-200 flex-none overflow-x-auto py-10">
-        <div class="min-w-max px-12 flex items-center justify-center gap-0" id="pipeline-container">
+    <!-- Modern Compact Pipeline Section with Resizable Panels -->
+    <div class="flex-1 flex overflow-hidden bg-gray-50" id="main-container">
 
-            <th:block th:each="step, iter : ${build.steps}">
-                <!-- Step Card -->
-                <div class="flex flex-col items-center cursor-pointer group transition-all hover:scale-105"
-                    th:attr="data-step-index=${iter.index}, onclick='selectStep(' + ${iter.index} + ')'">
+        <!-- Pipeline Visualization (Left Side - Resizable) -->
+        <div class="overflow-y-auto" id="pipeline-panel" style="width: 66.666%;">
 
-                    <!-- Step Circle with Icon -->
-                    <div class="relative">
-                        <div class="w-12 h-12 rounded-full border-3 flex items-center justify-center transition-all shadow-md bg-white"
-                            th:classappend="${step.status.name() == 'SUCCESS'} ? 'border-green-500' : 
-                                           (${step.status.name() == 'FAILURE'} ? 'border-red-500' : 
-                                           (${step.status.name() == 'IN_PROGRESS'} ? 'border-blue-500 shadow-lg' : 'border-gray-300'))">
+            <!-- Modern Stats Bar -->
+            <div
+                class="bg-gradient-to-r from-gray-50 to-white border-b border-gray-200 px-8 py-5 sticky top-0 z-10 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <!-- Success Badge -->
+                        <div
+                            class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 border border-green-200">
+                            <svg class="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-sm font-semibold text-green-700" id="stat-success">0</span>
+                            <span class="text-xs text-green-600 font-medium">passed</span>
+                        </div>
 
-                            <div class="text-center"
-                                th:classappend="${step.status.name() == 'SUCCESS'} ? 'text-green-600' : 
-                                               (${step.status.name() == 'FAILURE'} ? 'text-red-600' : 
-                                               (${step.status.name() == 'IN_PROGRESS'} ? 'text-blue-600' : 'text-gray-400'))">
-                                <svg th:if="${step.status.name() == 'SUCCESS'}" class="w-6 h-6" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                <svg th:if="${step.status.name() == 'FAILURE'}" class="w-6 h-6" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                <div th:if="${step.status.name() == 'IN_PROGRESS'}" class="relative">
-                                    <svg class="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                            stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                        </path>
-                                    </svg>
+                        <!-- Failed Badge -->
+                        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 border border-red-200">
+                            <svg class="h-4 w-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                    clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-sm font-semibold text-red-700" id="stat-failed">0</span>
+                            <span class="text-xs text-red-600 font-medium">failed</span>
+                        </div>
+
+                        <!-- Running Badge -->
+                        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200">
+                            <!-- animate-spin if needed-->
+                            <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                </path>
+                            </svg>
+                            <span class="text-sm font-semibold text-blue-700" id="stat-running">0</span>
+                            <span class="text-xs text-blue-600 font-medium">running</span>
+                        </div>
+
+                        <!-- Pending Badge -->
+                        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-300">
+                            <svg class="h-4 w-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                                    clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-sm font-semibold text-gray-700" id="stat-pending">0</span>
+                            <span class="text-xs text-gray-600 font-medium">pending</span>
+                        </div>
+                    </div>
+
+                    <!-- Total Steps -->
+                    <div class="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-white border border-gray-200">
+                        <svg class="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                            </path>
+                        </svg>
+                        <span class="text-sm font-semibold text-gray-900" id="total-steps"
+                            th:text="${build.steps.size()}">0</span>
+                        <span class="text-xs text-gray-500 font-medium">total steps</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compact Modern Pipeline Flow -->
+            <div class="p-6 space-y-3" id="pipeline-container">
+                <th:block th:each="step, iter : ${build.steps}">
+                    <div class="pipeline-step-card group" th:attr="data-step-index=${iter.index}">
+
+                        <!-- Compact Step Card -->
+                        <div class="relative flex items-center gap-4 px-4 py-3 bg-white rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 cursor-pointer"
+                            th:attr="onclick='selectStep(' + ${iter.index} + ')'"
+                            th:classappend="${step.status.name() == 'SUCCESS'} ? ' border-l-2 border-l-green-500' :
+                                         (${step.status.name() == 'FAILURE'} ? ' border-l-2 border-l-red-500' :
+                                         (${step.status.name() == 'IN_PROGRESS'} ? ' border-l-2 border-l-blue-500 bg-blue-50/30' : ' border-l-2 border-l-gray-300'))">
+
+                            <!-- Step Number Badge (Smaller) -->
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-transform group-hover:scale-110"
+                                    th:classappend="${step.status.name() == 'SUCCESS'} ? ' bg-green-100 text-green-700' :
+                                                 (${step.status.name() == 'FAILURE'} ? ' bg-red-100 text-red-700' :
+                                                 (${step.status.name() == 'IN_PROGRESS'} ? ' bg-blue-100 text-blue-700' : ' bg-gray-100 text-gray-600'))">
+                                    <span th:text="${iter.count}">1</span>
                                 </div>
-                                <span th:if="${step.status.name() == 'PENDING'}" class="text-base font-bold"
-                                    th:text="${iter.count}"></span>
+                            </div>
+
+                            <!-- Step Content (Compact) -->
+                            <div class="flex-1 min-w-0 flex items-center justify-between">
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="text-sm font-semibold text-gray-900 truncate" th:text="${step.name}">Step
+                                        Name</h4>
+                                    <div class="flex items-center gap-4 mt-1">
+                                        <!-- Status Icon -->
+                                        <div class="flex items-center gap-1.5 text-xs">
+                                            <svg th:if="${step.status.name() == 'SUCCESS'}"
+                                                class="h-3.5 w-3.5 text-green-600" fill="currentColor"
+                                                viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                    clip-rule="evenodd"></path>
+                                            </svg>
+                                            <svg th:if="${step.status.name() == 'FAILURE'}"
+                                                class="h-3.5 w-3.5 text-red-600" fill="currentColor"
+                                                viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                                    clip-rule="evenodd"></path>
+                                            </svg>
+                                            <svg th:if="${step.status.name() == 'IN_PROGRESS'}"
+                                                class="h-3.5 w-3.5 text-blue-600 animate-spin" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                                </path>
+                                            </svg>
+                                            <span class="font-medium"
+                                                th:classappend="${step.status.name() == 'SUCCESS'} ? 'text-green-700' :
+                                                              (${step.status.name() == 'FAILURE'} ? 'text-red-700' :
+                                                              (${step.status.name() == 'IN_PROGRESS'} ? 'text-blue-700' : 'text-gray-600'))"
+                                                th:text="${step.status.name() == 'SUCCESS'} ? 'Passed' : (${step.status.name() == 'FAILURE'} ? 'Failed' : (${step.status.name() == 'IN_PROGRESS'} ? 'Running' : 'Pending'))">Passed</span>
+                                        </div>
+                                        <!-- Duration -->
+                                        <div class="flex items-center gap-1 text-xs text-gray-500">
+                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span th:id="'duration-' + ${iter.index}"
+                                                th:text="${step.duration != null} ? ${step.duration / 1000.0} + 's' : '—'">2.5s</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Minimal Progress Bar for Running -->
+                                <div th:if="${step.status.name() == 'IN_PROGRESS'}" class="w-24 ml-4">
+                                    <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
+                                        <div class="h-full bg-blue-500 rounded-full animate-pulse" style="width: 60%">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Chevron -->
+                                <svg class="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors ml-2"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5l7 7-7 7"></path>
+                                </svg>
                             </div>
                         </div>
 
-                        <!-- Step Number Badge -->
-                        <div
-                            class="absolute -top-1 -right-1 w-5 h-5 bg-gray-800 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                            <span th:text="${iter.count}"></span>
+                        <!-- Minimal Connection Line -->
+                        <div th:if="${!iter.last}" class="flex justify-start pl-4 h-3">
+                            <div class="w-px h-full transition-colors"
+                                th:classappend="${step.status.name() == 'SUCCESS'} ? 'bg-green-300' :
+                                             (${step.status.name() == 'FAILURE'} ? 'bg-red-300' :
+                                             (${step.status.name() == 'IN_PROGRESS'} ? 'bg-blue-300' : 'bg-gray-200'))">
+                            </div>
                         </div>
                     </div>
-
-                    <!-- Step Name & Duration -->
-                    <div class="mt-3 text-center" style="width: 120px;">
-                        <p class="text-sm font-semibold text-gray-800 truncate px-2" th:text="${step.name}">Step</p>
-                        <p class="text-xs text-gray-500 mt-1" th:id="'duration-' + ${iter.index}"
-                            th:text="${step.duration != null ? (step.duration/1000.0 + 's') : ''}"></p>
-                    </div>
-                </div>
-
-                <!-- Connector Line -->
-                <div th:if="${!iter.last}" class="flex items-center" style="margin-top: -50px;">
-                    <div class="h-1 w-10 transition-colors" th:classappend="${step.status.name() == 'SUCCESS'} ? 'bg-green-500' : 
-                                       (${step.status.name() == 'FAILURE'} ? 'bg-red-500' : 
-                                       (${step.status.name() == 'IN_PROGRESS'} ? 'bg-blue-500' : 'bg-gray-300'))">
-                    </div>
-                </div>
-            </th:block>
-
-        </div>
-    </div>
-
-    <!-- Main Content: Steps List & Logs -->
-    <div class="flex-1 flex overflow-hidden">
-
-        <!-- Steps Sidebar -->
-        <div class="w-80 bg-white border-r border-gray-200 flex flex-col">
-            <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                <h2 class="font-semibold text-gray-800">Build Steps</h2>
-                <span class="text-xs font-semibold px-2 py-1 bg-gray-200 text-gray-600 rounded"
-                    th:text="${build.steps.size()}"></span>
-            </div>
-            <div class="overflow-y-auto flex-1 p-3 space-y-2" id="steps-list">
-                <div th:each="step, iter : ${build.steps}"
-                    class="step-card p-3 border-2 border-gray-200 rounded cursor-pointer hover:border-gray-400 transition-all"
-                    th:attr="onclick='selectStep(' + ${iter.index} + ')', id='card-' + ${iter.index}">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-semibold text-gray-800" th:text="${step.name}"></span>
-                        <div class="step-card-status text-xl">
-                            <span th:if="${step.status.name() == 'SUCCESS'}" class="text-green-600">✓</span>
-                            <span th:if="${step.status.name() == 'FAILURE'}" class="text-red-600">✗</span>
-                            <span th:if="${step.status.name() == 'IN_PROGRESS'}" class="text-blue-600">⟳</span>
-                            <span th:if="${step.status.name() == 'PENDING'}" class="text-gray-400">○</span>
-                        </div>
-                    </div>
-                    <div class="flex justify-between text-xs text-gray-500">
-                        <span th:text="${step.status}"></span>
-                        <span class="font-mono"
-                            th:text="${step.duration != null ? (step.duration/1000.0 + 's') : '-'}"></span>
-                    </div>
-                </div>
+                </th:block>
             </div>
         </div>
 
-        <!-- Logs Panel - Lighter Design -->
-        <div class="flex-1 bg-gray-900 flex flex-col">
-            <div class="flex items-center justify-between px-4 py-3 bg-gray-800 border-b border-gray-700">
+        <!-- Resize Handle -->
+        <div id="resize-handle"
+            class="w-1 bg-gray-300 hover:bg-blue-500 cursor-col-resize transition-colors duration-200 relative group">
+            <div class="absolute inset-y-0 -left-1 -right-1"></div>
+            <!-- Visual indicator on hover -->
+            <div
+                class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                        d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z">
+                    </path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Modern Logs Panel (Right Side - Resizable) -->
+        <div class="bg-gray-900 flex flex-col border-l border-gray-800" id="logs-panel" style="flex: 1;">
+            <!-- Enhanced Logs Header -->
+            <div class="bg-gradient-to-r from-gray-800 to-gray-900 border-b border-gray-700 px-4 py-3">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        <span class="text-sm font-semibold text-white">Live Logs</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <!-- Copy Button -->
+                        <button onclick="copyLogs()"
+                            class="p-1.5 rounded hover:bg-gray-700 transition text-gray-400 hover:text-white"
+                            title="Copy logs">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                        </button>
+                        <!-- Download Button -->
+                        <button onclick="downloadLogs()"
+                            class="p-1.5 rounded hover:bg-gray-700 transition text-gray-400 hover:text-white"
+                            title="Download logs">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                        </button>
+                        <!-- View Raw Link -->
+                        <a th:href="@{|/builds/${build.id}/logs|}" target="_blank"
+                            class="p-1.5 rounded hover:bg-gray-700 transition text-gray-400 hover:text-white"
+                            title="Open in new tab">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
                 <div class="flex items-center gap-2">
-                    <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span id="log-filename" class="text-sm font-mono text-gray-300">build.log</span>
+                    <span id="log-filename" class="text-xs font-mono text-gray-400">No step selected</span>
+                    <span class="text-xs text-gray-600">•</span>
+                    <span id="log-line-count" class="text-xs text-gray-500">0 lines</span>
                 </div>
-                <a th:href="@{|/builds/${build.id}/logs|}" target="_blank"
-                    class="text-xs text-gray-400 hover:text-white transition flex items-center gap-1">
-                    <span>View Raw</span>
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                </a>
             </div>
-            <div class="flex-1 overflow-auto p-4 log-scroll">
-                <pre id="active-log"
-                    class="font-mono text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">No logs selected...</pre>
-            </div>
-            <div id="step-error-banner" class="hidden bg-red-900 text-white p-4 border-t-2 border-red-700">
-                <div class="flex items-center gap-2 mb-2">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                            clip-rule="evenodd" />
-                    </svg>
-                    <span class="text-sm font-bold">Step Failed</span>
+
+            <!-- Logs Content with Line Numbers -->
+            <div class="flex-1 overflow-auto log-scroll bg-gray-950">
+                <div class="flex min-h-full">
+                    <!-- Line Numbers -->
+                    <div id="log-line-numbers"
+                        class="select-none bg-gray-900 border-r border-gray-800 px-3 py-4 text-right">
+                        <div class="font-mono text-xs text-gray-600 leading-relaxed">1</div>
+                    </div>
+                    <!-- Log Content -->
+                    <div class="flex-1 px-4 py-4">
+                        <pre id="active-log"
+                            class="font-mono text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">No logs selected. Click on a step to view its output.</pre>
+                    </div>
                 </div>
-                <div id="step-error-msg" class="text-sm font-mono opacity-90 pl-7"></div>
+            </div>
+
+            <!-- Enhanced Error Banner -->
+            <div id="step-error-banner"
+                class="hidden border-t-2 border-red-600 bg-gradient-to-r from-red-900 to-red-800 text-white">
+                <div class="px-4 py-3">
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0 mt-0.5">
+                            <div class="w-8 h-8 rounded-full bg-red-700 flex items-center justify-center">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between mb-1">
+                                <h4 class="text-sm font-bold">Step Failed</h4>
+                                <button onclick="document.getElementById('step-error-banner').classList.add('hidden')"
+                                    class="text-red-200 hover:text-white transition">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                            clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="step-error-msg"
+                                class="text-sm font-mono bg-red-950/50 px-3 py-2 rounded border border-red-700/50 break-words">
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
+    <script>
+        function copyLogs() {
+            const logText = document.getElementById('active-log').textContent;
+            navigator.clipboard.writeText(logText).then(() => {
+                // Show a brief success indicator
+                const btn = event.currentTarget;
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>';
+                setTimeout(() => btn.innerHTML = originalHTML, 1000);
+            });
+        }
+
+        function downloadLogs() {
+            const logText = document.getElementById('active-log').textContent;
+            const filename = document.getElementById('log-filename').textContent || 'build.log';
+            const blob = new Blob([logText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function updateLineNumbers() {
+            const logContent = document.getElementById('active-log').textContent;
+            const lines = logContent.split('\n').length;
+            const lineNumbersDiv = document.getElementById('log-line-numbers');
+            const lineCountSpan = document.getElementById('log-line-count');
+
+            let lineNumbers = '';
+            for (let i = 1; i <= lines; i++) {
+                lineNumbers += `<div class="font-mono text-xs text-gray-600 leading-relaxed">${i}</div>`;
+            }
+            lineNumbersDiv.innerHTML = lineNumbers;
+
+            if (lineCountSpan) {
+                lineCountSpan.textContent = `${lines} line${lines !== 1 ? 's' : ''}`;
+            }
+        }
+
+        // Resizable panels functionality
+        (function () {
+            const resizeHandle = document.getElementById('resize-handle');
+            const pipelinePanel = document.getElementById('pipeline-panel');
+            const logsPanel = document.getElementById('logs-panel');
+            const container = document.getElementById('main-container');
+
+            let isResizing = false;
+            let startX = 0;
+            let startPipelineWidth = 0;
+
+            resizeHandle.addEventListener('mousedown', function (e) {
+                isResizing = true;
+                startX = e.clientX;
+                startPipelineWidth = pipelinePanel.offsetWidth;
+
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', function (e) {
+                if (!isResizing) return;
+
+                const containerWidth = container.offsetWidth;
+                const delta = e.clientX - startX;
+                const newPipelineWidth = startPipelineWidth + delta;
+                const pipelinePercent = (newPipelineWidth / containerWidth) * 100;
+
+                // Limit between 30% and 70%
+                if (pipelinePercent >= 30 && pipelinePercent <= 70) {
+                    pipelinePanel.style.width = pipelinePercent + '%';
+                }
+            });
+
+            document.addEventListener('mouseup', function () {
+                if (isResizing) {
+                    isResizing = false;
+                    document.body.style.cursor = '';
+                    document.body.style.userSelect = '';
+                }
+            });
+        })();
+    </script>
 
     <script th:inline="javascript">
         const buildId = /*[[${build.id}]]*/ 1;
         let currentBuild = /*[[${build}]]*/ {};
         let currentStepIndex = 0;
 
+
         document.addEventListener('DOMContentLoaded', () => {
+            updateStatsBar(currentBuild.steps);
             selectStartStep();
             startPolling();
         });
+
+        function updateStatsBar(steps) {
+            if (!steps) return;
+
+            const counts = { SUCCESS: 0, FAILURE: 0, IN_PROGRESS: 0, PENDING: 0 };
+            steps.forEach(step => {
+                const status = step.status?.toUpperCase() || 'PENDING';
+                if (counts[status] !== undefined) {
+                    counts[status]++;
+                }
+            });
+
+            const successEl = document.getElementById('stat-success');
+            const failedEl = document.getElementById('stat-failed');
+            const runningEl = document.getElementById('stat-running');
+            const pendingEl = document.getElementById('stat-pending');
+
+            if (successEl) successEl.textContent = counts.SUCCESS;
+            if (failedEl) failedEl.textContent = counts.FAILURE;
+            if (runningEl) runningEl.textContent = counts.IN_PROGRESS;
+            if (pendingEl) pendingEl.textContent = counts.PENDING;
+        }
+
 
         function selectStartStep() {
             if (!currentBuild.steps || currentBuild.steps.length === 0) {
@@ -395,8 +674,11 @@
                 if (durEl) durEl.textContent = step.duration ? (step.duration / 1000).toFixed(1) + 's' : '';
             });
 
+            // Update stats bar
+            updateStatsBar(data.steps);
+
             // Update pipeline circles
-            updatePipelineCircles(data.steps);
+            updatePipelineSteps(data.steps);
 
             if (currentStepIndex !== -1 && currentBuild.steps[currentStepIndex]) {
                 const currentStep = currentBuild.steps[currentStepIndex];
@@ -425,52 +707,102 @@
             }
         }
 
-        function updatePipelineCircles(steps) {
+        function updatePipelineSteps(steps) {
             steps.forEach((step, idx) => {
                 const stepWrapper = document.querySelector('[data-step-index="' + idx + '"]');
                 if (!stepWrapper) return;
 
-                const circle = stepWrapper.querySelector('.w-12.h-12');
-                const iconContainer = circle?.querySelector('.text-center');
+                // Find the main card element (the one with border-l-2)
+                const card = stepWrapper.querySelector('.border-l-2') || stepWrapper.querySelector('[onclick]');
+                if (!card) return;
 
-                if (!circle || !iconContainer) return;
+                // Find the step number badge
+                const badge = stepWrapper.querySelector('.w-8.h-8');
 
-                // Update circle border color
-                circle.className = 'w-12 h-12 rounded-full border-3 flex items-center justify-center transition-all shadow-md bg-white';
+                // Find status elements
+                const statusIconContainer = stepWrapper.querySelector('.flex.items-center.gap-1\\.5.text-xs');
+                const progressBarContainer = stepWrapper.querySelector('.w-24.ml-4');
+
+                // Determine classes based on status
+                let borderClass, badgeClass, statusText, statusClass, statusIcon;
+
                 if (step.status === 'SUCCESS') {
-                    circle.classList.add('border-green-500');
+                    borderClass = 'border-l-green-500';
+                    badgeClass = 'bg-green-100 text-green-700';
+                    statusText = 'Passed';
+                    statusClass = 'text-green-700';
+                    statusIcon = '<svg class="h-3.5 w-3.5 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>';
                 } else if (step.status === 'FAILURE') {
-                    circle.classList.add('border-red-500');
+                    borderClass = 'border-l-red-500';
+                    badgeClass = 'bg-red-100 text-red-700';
+                    statusText = 'Failed';
+                    statusClass = 'text-red-700';
+                    statusIcon = '<svg class="h-3.5 w-3.5 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>';
                 } else if (step.status === 'IN_PROGRESS') {
-                    circle.classList.add('border-blue-500', 'shadow-lg');
+                    borderClass = 'border-l-blue-500';
+                    badgeClass = 'bg-blue-100 text-blue-700';
+                    statusText = 'Running';
+                    statusClass = 'text-blue-700';
+                    statusIcon = '<svg class="h-3.5 w-3.5 text-blue-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>';
                 } else {
-                    circle.classList.add('border-gray-300');
+                    borderClass = 'border-l-gray-300';
+                    badgeClass = 'bg-gray-100 text-gray-600';
+                    statusText = 'Pending';
+                    statusClass = 'text-gray-600';
+                    statusIcon = '';
                 }
 
-                // Update icon color
-                iconContainer.className = 'text-center';
-                if (step.status === 'SUCCESS') {
-                    iconContainer.classList.add('text-green-600');
-                } else if (step.status === 'FAILURE') {
-                    iconContainer.classList.add('text-red-600');
-                } else if (step.status === 'IN_PROGRESS') {
-                    iconContainer.classList.add('text-blue-600');
-                } else {
-                    iconContainer.classList.add('text-gray-400');
+                // Update card border color
+                card.classList.remove('border-l-green-500', 'border-l-red-500', 'border-l-blue-500', 'border-l-gray-300', 'bg-blue-50/30');
+                card.classList.add(borderClass);
+                if (step.status === 'IN_PROGRESS') {
+                    card.classList.add('bg-blue-50/30');
                 }
 
-                // Update icon based on status
-                let iconHTML = '';
-                if (step.status === 'SUCCESS') {
-                    iconHTML = '<svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>';
-                } else if (step.status === 'FAILURE') {
-                    iconHTML = '<svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>';
-                } else if (step.status === 'IN_PROGRESS') {
-                    iconHTML = '<div class="relative"><svg class="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>';
-                } else {
-                    iconHTML = '<span class="text-base font-bold">' + (idx + 1) + '</span>';
+                // Update badge colors
+                if (badge) {
+                    badge.classList.remove('bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700', 'bg-blue-100', 'text-blue-700', 'bg-gray-100', 'text-gray-600');
+                    badgeClass.split(' ').forEach(cls => badge.classList.add(cls));
                 }
-                iconContainer.innerHTML = iconHTML;
+
+                // Update status icon and text
+                if (statusIconContainer) {
+                    statusIconContainer.innerHTML = statusIcon + '<span class="font-medium ' + statusClass + '">' + statusText + '</span>';
+                }
+
+                // Handle progress bar visibility
+                if (step.status === 'IN_PROGRESS') {
+                    if (!progressBarContainer) {
+                        // Add progress bar if it doesn't exist
+                        const chevron = card.querySelector('svg.h-4.w-4.text-gray-400');
+                        if (chevron) {
+                            const progressDiv = document.createElement('div');
+                            progressDiv.className = 'w-24 ml-4';
+                            progressDiv.innerHTML = '<div class="h-1 bg-gray-200 rounded-full overflow-hidden"><div class="h-full bg-blue-500 rounded-full animate-pulse" style="width: 60%"></div></div>';
+                            chevron.parentNode.insertBefore(progressDiv, chevron);
+                        }
+                    }
+                } else {
+                    // Remove progress bar if status is not IN_PROGRESS
+                    if (progressBarContainer) {
+                        progressBarContainer.remove();
+                    }
+                }
+
+                // Update connection line color
+                const connectionLine = stepWrapper.querySelector('.w-px');
+                if (connectionLine) {
+                    connectionLine.classList.remove('bg-green-300', 'bg-red-300', 'bg-blue-300', 'bg-gray-200');
+                    if (step.status === 'SUCCESS') {
+                        connectionLine.classList.add('bg-green-300');
+                    } else if (step.status === 'FAILURE') {
+                        connectionLine.classList.add('bg-red-300');
+                    } else if (step.status === 'IN_PROGRESS') {
+                        connectionLine.classList.add('bg-blue-300');
+                    } else {
+                        connectionLine.classList.add('bg-gray-200');
+                    }
+                }
             });
         }
 
@@ -494,39 +826,92 @@
         function renderNewPipelineStep(step, index) {
             const container = document.getElementById('pipeline-container');
 
-            // Add connector if not the first step
-            if (index > 0) {
-                const connector = document.createElement('div');
-                connector.className = 'flex items-center';
-                connector.style.marginTop = '-50px';
-                connector.innerHTML = '<div class="h-1 w-10 transition-colors bg-gray-300"></div>';
-                container.appendChild(connector);
+            // Determine status classes
+            let borderClass = 'border-l-gray-300';
+            let badgeClass = 'bg-gray-100 text-gray-600';
+            let statusText = 'Pending';
+            let statusClass = 'text-gray-600';
+            let statusIcon = '';
+
+            if (step.status === 'SUCCESS') {
+                borderClass = 'border-l-green-500';
+                badgeClass = 'bg-green-100 text-green-700';
+                statusText = 'Passed';
+                statusClass = 'text-green-700';
+                statusIcon = '<svg class="h-3.5 w-3.5 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>';
+            } else if (step.status === 'FAILURE') {
+                borderClass = 'border-l-red-500';
+                badgeClass = 'bg-red-100 text-red-700';
+                statusText = 'Failed';
+                statusClass = 'text-red-700';
+                statusIcon = '<svg class="h-3.5 w-3.5 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>';
+            } else if (step.status === 'IN_PROGRESS') {
+                borderClass = 'border-l-blue-500 bg-blue-50/30';
+                badgeClass = 'bg-blue-100 text-blue-700';
+                statusText = 'Running';
+                statusClass = 'text-blue-700';
+                statusIcon = '<svg class="h-3.5 w-3.5 text-blue-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>';
             }
 
-            // basic step HTML
-            const stepDiv = document.createElement('div');
-            stepDiv.className = 'flex flex-col items-center cursor-pointer group transition-all hover:scale-105';
-            stepDiv.dataset.stepIndex = index;
-            stepDiv.onclick = () => selectStep(index);
+            const stepWrapper = document.createElement('div');
+            stepWrapper.className = 'pipeline-step-card group';
+            stepWrapper.dataset.stepIndex = index;
 
-            stepDiv.innerHTML = `
-                <div class="relative">
-                    <div class="w-12 h-12 rounded-full border-3 flex items-center justify-center transition-all shadow-md bg-white border-gray-300">
-                        <div class="text-center text-gray-400">
-                             <span class="text-base font-bold">${index + 1}</span>
+            stepWrapper.innerHTML = `
+                <!-- Compact Step Card -->
+                <div class="relative flex items-center gap-4 px-4 py-3 bg-white rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 cursor-pointer border-l-2 ${borderClass}"
+                    onclick="selectStep(${index})">
+
+                    <!-- Step Number Badge (Smaller) -->
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-transform group-hover:scale-110 ${badgeClass}">
+                            <span>${index + 1}</span>
                         </div>
                     </div>
-                    <div class="absolute -top-1 -right-1 w-5 h-5 bg-gray-800 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                        <span>${index + 1}</span>
+
+                    <!-- Step Content (Compact) -->
+                    <div class="flex-1 min-w-0 flex items-center justify-between">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-sm font-semibold text-gray-900 truncate">${step.name}</h4>
+                            <div class="flex items-center gap-4 mt-1">
+                                <!-- Status Icon -->
+                                <div class="flex items-center gap-1.5 text-xs">
+                                    ${statusIcon}
+                                    <span class="font-medium ${statusClass}">${statusText}</span>
+                                </div>
+                                <!-- Duration -->
+                                <div class="flex items-center gap-1 text-xs text-gray-500">
+                                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span id="duration-${index}">${step.duration ? (step.duration / 1000).toFixed(1) + 's' : '—'}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        ${step.status === 'IN_PROGRESS' ? `
+                        <!-- Minimal Progress Bar for Running -->
+                        <div class="w-24 ml-4">
+                            <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-blue-500 rounded-full animate-pulse" style="width: 60%"></div>
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        <!-- Chevron -->
+                        <svg class="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
                     </div>
                 </div>
-                <div class="mt-3 text-center" style="width: 120px;">
-                    <p class="text-sm font-semibold text-gray-800 truncate px-2">${step.name}</p>
-                    <p class="text-xs text-gray-500 mt-1" id="duration-${index}"></p>
+
+                <!-- Minimal Connection Line -->
+                <div class="flex justify-start pl-4 h-3">
+                    <div class="w-px h-full transition-colors ${step.status === 'SUCCESS' ? 'bg-green-300' : (step.status === 'FAILURE' ? 'bg-red-300' : (step.status === 'IN_PROGRESS' ? 'bg-blue-300' : 'bg-gray-200'))}"></div>
                 </div>
             `;
 
-            container.appendChild(stepDiv);
+            container.appendChild(stepWrapper);
         }
 
         function renderNewSidebarStep(step, index) {

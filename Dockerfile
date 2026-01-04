@@ -11,9 +11,22 @@ FROM eclipse-temurin:21-jdk AS dependencies
 
 WORKDIR /app
 
-# Install Maven
-RUN apt-get update && apt-get install -y --no-install-recommends maven && \
+# Install Maven 3.9.9 (required by protobuf-maven-plugin 4.0.3) and Node.js 22
+ARG MAVEN_VERSION=3.9.9
+ARG NODE_MAJOR=22
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates gnupg && \
+    # Install Maven
+    curl -fsSL https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz | tar -xzC /opt && \
+    ln -s /opt/apache-maven-${MAVEN_VERSION}/bin/mvn /usr/bin/mvn && \
+    # Install Node.js 22
+    mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list && \
+    apt-get update && apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
+
+# Verify versions
+RUN mvn --version && node --version && npm --version
 
 # Copy pom.xml first for dependency caching
 COPY pom.xml .

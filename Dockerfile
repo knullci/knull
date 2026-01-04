@@ -1,17 +1,19 @@
 # ==============================================================================
-# Knull CI/CD Dockerfile
+# Knull CI/CD Dockerfile (Debian-based for better compatibility)
 # Multi-stage build with separate test and production stages
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
 # Stage 1: Dependencies (cached layer)
+# Using Debian-based image for better glibc compatibility with protoc plugins
 # ------------------------------------------------------------------------------
-FROM eclipse-temurin:21-jdk-alpine AS dependencies
+FROM eclipse-temurin:21-jdk AS dependencies
 
 WORKDIR /app
 
 # Install Maven
-RUN apk add --no-cache maven
+RUN apt-get update && apt-get install -y --no-install-recommends maven && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy pom.xml first for dependency caching
 COPY pom.xml .
@@ -56,7 +58,7 @@ RUN mvn package -B -DskipTests
 RUN java -Djarmode=layertools -jar target/*.jar extract --destination target/extracted
 
 # ------------------------------------------------------------------------------
-# Stage 5: Production
+# Stage 5: Production (using slim Alpine for smaller image)
 # ------------------------------------------------------------------------------
 FROM eclipse-temurin:21-jre-alpine AS production
 

@@ -49,14 +49,13 @@ public class SecretFileController {
 
     @PostMapping("/create")
     public String createSecretFile(
-            @RequestParam String name,
-            @RequestParam String description,
-            @RequestParam String type,
-            @RequestParam String content,
-            @RequestParam(required = false) String mountPath) {
+            @RequestParam("name") String name,
+            @RequestParam("description") String description,
+            @RequestParam("type") String type,
+            @RequestParam("content") String content) {
 
         CreateSecretFileCommand command = new CreateSecretFileCommand(
-                name, description, type, content, mountPath);
+                name, description, type, content);
 
         createSecretFileCommandHandler.handle(command);
 

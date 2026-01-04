@@ -14,7 +14,6 @@ public class SecretFileMapper {
                 secretFile.getDescription(),
                 secretFile.getType() != null ? secretFile.getType().name() : null,
                 secretFile.getEncryptedContent(),
-                secretFile.getMountPath(),
                 secretFile.getCreatedAt(),
                 secretFile.getUpdatedAt());
     }
@@ -29,7 +28,6 @@ public class SecretFileMapper {
         secretFile.setDescription(entity.getDescription());
         secretFile.setType(entity.getType() != null ? SecretFile.SecretType.valueOf(entity.getType()) : null);
         secretFile.setEncryptedContent(entity.getEncryptedContent());
-        secretFile.setMountPath(entity.getMountPath());
         secretFile.setCreatedAt(entity.getCreatedAt());
         secretFile.setUpdatedAt(entity.getUpdatedAt());
         return secretFile;

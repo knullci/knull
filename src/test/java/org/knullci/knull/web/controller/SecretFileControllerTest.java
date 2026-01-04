@@ -106,7 +106,6 @@ class SecretFileControllerTest {
         String description = "New description";
         String type = "FILE";
         String content = "new-content";
-        String mountPath = "/path/to/mount";
 
         SecretFileDto mockDto = new SecretFileDto();
         mockDto.setId(1L);
@@ -114,7 +113,7 @@ class SecretFileControllerTest {
         when(createSecretFileCommandHandler.handle(any(CreateSecretFileCommand.class))).thenReturn(mockDto);
 
         // Act
-        String redirectUrl = controller.createSecretFile(name, description, type, content, mountPath);
+        String redirectUrl = controller.createSecretFile(name, description, type, content);
 
         // Assert
         assertEquals("redirect:/secret-files", redirectUrl);
@@ -142,14 +141,13 @@ class SecretFileControllerTest {
         String description = "Test description";
         String type = "FILE";
         String content = "test-content";
-        String mountPath = "/path/to/mount";
 
         doThrow(new IllegalArgumentException("Secret already exists"))
                 .when(createSecretFileCommandHandler).handle(any(CreateSecretFileCommand.class));
 
         // Act & Assert
         assertThrows(IllegalArgumentException.class,
-                () -> controller.createSecretFile(name, description, type, content, mountPath));
+                () -> controller.createSecretFile(name, description, type, content));
     }
 
     private SecretFileDto createSecretFileDto(Long id, String name, String description) {

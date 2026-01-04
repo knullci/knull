@@ -61,14 +61,11 @@
                             th:text="${secretFile.type}">FILE</span>
                     </div>
 
-                    <!-- Mount Path -->
+                    <!-- Usage Info -->
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Mount Path</label>
-                        <code th:if="${secretFile.mountPath != null}"
-                            class="block text-sm text-gray-900 bg-gray-100 px-4 py-3 rounded-lg font-mono"
-                            th:text="${secretFile.mountPath}">/app/.env</code>
-                        <span th:if="${secretFile.mountPath == null}" class="text-gray-500 italic">Not specified</span>
-                        <p class="mt-2 text-sm text-gray-600">Where this file will be mounted during build execution</p>
+                        <p class="text-sm text-gray-600">Specify the mount path in your pipeline YAML when using this
+                            secret</p>
                     </div>
 
                     <!-- Content Warning -->

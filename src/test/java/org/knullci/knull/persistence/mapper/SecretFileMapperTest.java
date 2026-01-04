@@ -56,7 +56,6 @@ class SecretFileMapperTest {
                 "Production secret",
                 "FILE",
                 "production-content",
-                "/path/to/mount",
                 null,
                 null);
 

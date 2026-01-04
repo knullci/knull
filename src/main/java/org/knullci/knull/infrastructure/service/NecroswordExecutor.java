@@ -9,10 +9,13 @@ import org.knullci.knull.domain.enums.BuildStepStatus;
 import org.knullci.knull.domain.model.Build;
 import org.knullci.knull.domain.model.Credentials;
 import org.knullci.knull.domain.model.Job;
+import org.knullci.knull.domain.model.SecretFile;
 import org.knullci.knull.domain.repository.BuildRepository;
 import org.knullci.knull.domain.repository.CredentialRepository;
+import org.knullci.knull.domain.repository.SecretFileRepository;
 import org.knullci.knull.infrastructure.knullpojo.v1.JobStep;
 import org.knullci.knull.infrastructure.knullpojo.v1.JobYaml;
+import org.knullci.knull.infrastructure.knullpojo.v1.SecretMount;
 import org.knullci.knull.proto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +26,9 @@ import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -53,6 +59,7 @@ public class NecroswordExecutor implements KnullExecutor {
 
     private final CredentialRepository credentialRepository;
     private final BuildRepository buildRepository;
+    private final SecretFileRepository secretFileRepository;
     private final EncryptionService encryptionService;
     private final ObjectMapper yamlObjectMapper;
 
@@ -84,10 +91,12 @@ public class NecroswordExecutor implements KnullExecutor {
             CredentialRepository credentialRepository,
             EncryptionService encryptionService,
             BuildRepository buildRepository,
+            SecretFileRepository secretFileRepository,
             @Qualifier("yamlObjectMapper") ObjectMapper yamlObjectMapper) {
         this.credentialRepository = credentialRepository;
         this.encryptionService = encryptionService;
         this.buildRepository = buildRepository;
+        this.secretFileRepository = secretFileRepository;
         this.yamlObjectMapper = yamlObjectMapper;
     }
 
@@ -330,12 +339,36 @@ public class NecroswordExecutor implements KnullExecutor {
         // Convert JobSteps to gRPC BuildSteps
         List<org.knullci.knull.proto.BuildStep> buildSteps = new ArrayList<>();
         for (JobStep step : effectiveSteps) {
+            // Prepare environment variables for this step
+            Map<String, String> stepEnv = new HashMap<>();
+
+            // Add step-defined environment variables
+            if (step.getEnv() != null) {
+                stepEnv.putAll(step.getEnv());
+            }
+
+            // Handle secret file mounts
+            if (step.getSecrets() != null && !step.getSecrets().isEmpty()) {
+                for (SecretMount secretMount : step.getSecrets()) {
+                    mountSecretFile(secretMount, stepEnv, repoDir, build.getId());
+                }
+            }
+
             org.knullci.knull.proto.BuildStep.Builder stepBuilder = org.knullci.knull.proto.BuildStep.newBuilder()
                     .setName(step.getName() != null ? step.getName() : "Step " + (buildSteps.size() + 1))
                     .setTool(step.getRun().getTool())
                     .addAllArgs(step.getRun().getArgs() != null ? step.getRun().getArgs() : Collections.emptyList())
                     .setWorkDir(repoDir)
                     .setTimeoutSeconds(DEFAULT_STEP_TIMEOUT_SECONDS);
+
+            // Add environment variables to step (convert Map to KEY=VALUE format)
+            if (!stepEnv.isEmpty()) {
+                List<String> envList = new ArrayList<>();
+                for (Map.Entry<String, String> entry : stepEnv.entrySet()) {
+                    envList.add(entry.getKey() + "=" + entry.getValue());
+                }
+                stepBuilder.addAllEnv(envList);
+            }
 
             buildSteps.add(stepBuilder.build());
         }
@@ -633,6 +666,79 @@ public class NecroswordExecutor implements KnullExecutor {
         }
 
         throw new RuntimeException("Credential does not contain token or username/password");
+    }
+
+    /**
+     * Mount a secret file for use in a pipeline step.
+     * 
+     * @param secretMount the secret mount configuration
+     * @param stepEnv     the environment variables map to update
+     * @param repoDir     the repository directory (used for relative paths)
+     * @param buildId     the build ID (for temp directory)
+     */
+    private void mountSecretFile(SecretMount secretMount, Map<String, String> stepEnv, String repoDir, Long buildId) {
+        String secretName = secretMount.getName();
+        if (secretName == null || secretName.isEmpty()) {
+            logger.warn("Secret mount has no name, skipping");
+            return;
+        }
+
+        // Find the secret file
+        Optional<SecretFile> secretFileOpt = secretFileRepository.findByName(secretName);
+        if (secretFileOpt.isEmpty()) {
+            throw new RuntimeException("Secret file not found: " + secretName);
+        }
+
+        SecretFile secretFile = secretFileOpt.get();
+
+        // Determine the mount path
+        String mountPath = secretMount.getPath();
+        if (mountPath == null || mountPath.isEmpty()) {
+            // Default mount path: workspace/.secrets/<secret-name>
+            mountPath = workspaceBasePath + "/build-" + buildId + "/.secrets/" + secretName;
+        }
+
+        // Expand ~ to home directory
+        if (mountPath.startsWith("~")) {
+            mountPath = System.getProperty("user.home") + mountPath.substring(1);
+        }
+
+        // Handle relative paths (relative to repo dir)
+        if (!mountPath.startsWith("/")) {
+            mountPath = repoDir + "/" + mountPath;
+        }
+
+        try {
+            // Decrypt the secret content
+            String decryptedContent = encryptionService.decrypt(secretFile.getEncryptedContent());
+
+            // Create parent directories
+            Path filePath = Paths.get(mountPath);
+            Files.createDirectories(filePath.getParent());
+
+            // Write the secret file with restricted permissions
+            try (FileWriter writer = new FileWriter(mountPath)) {
+                writer.write(decryptedContent);
+            }
+
+            // Set file permissions to 600 (owner read/write only) - Unix only
+            File file = new File(mountPath);
+            file.setReadable(false, false); // Remove read for all
+            file.setWritable(false, false); // Remove write for all
+            file.setReadable(true, true); // Add read for owner
+            file.setWritable(true, true); // Add write for owner
+
+            logger.info("Mounted secret '{}' to path: {}", secretName, mountPath);
+
+            // Set environment variable if specified
+            if (secretMount.getEnv() != null && !secretMount.getEnv().isEmpty()) {
+                stepEnv.put(secretMount.getEnv(), mountPath);
+                logger.info("Set environment variable {}={}", secretMount.getEnv(), mountPath);
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to mount secret file: " + secretName, e);
+        }
     }
 
     public boolean isHealthy() {

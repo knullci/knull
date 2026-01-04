@@ -6,6 +6,8 @@ import org.knullci.knull.application.command.GithubWebhookCommand;
 import org.knullci.knull.application.dto.GithubWebhookResponseDto;
 import org.knullci.knull.application.interfaces.ExecuteBuildCommandHandler;
 import org.knullci.knull.application.interfaces.GithubWebhookCommandHandler;
+import org.knullci.knull.domain.enums.JobType;
+import org.knullci.knull.domain.model.SimpleJobConfig;
 import org.knullci.knull.domain.repository.JobRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +39,16 @@ public class GithubWebhookCommandHandlerImpl implements GithubWebhookCommandHand
             return null;
         }
 
+        String currentBranch = command.getGithubWebhook().getRef().replace("refs/heads/", "");
+
+        if (job.get().getJobType().equals(JobType.SIMPLE)
+                && job.get().getJobConfig() instanceof SimpleJobConfig simpleJobConfig) {
+            if (!simpleJobConfig.getBranch().contains(currentBranch)) {
+                logger.info("Branch {} not in the job config, skipping pipeline", currentBranch);
+                return null;
+            }
+        }
+
         // Trigger build execution asynchronously
         logger.info("Triggering build for job: {} from repository: {}", job.get().getName(), repoName);
 
@@ -44,7 +56,7 @@ public class GithubWebhookCommandHandlerImpl implements GithubWebhookCommandHand
                 job.get(),
                 command.getGithubWebhook().getHeadCommit().getId(),
                 command.getGithubWebhook().getHeadCommit().getMessage(),
-                command.getGithubWebhook().getRef().replace("refs/heads/", ""),
+                currentBranch,
                 command.getGithubWebhook().getRepository().getOwner().getName(),
                 command.getGithubWebhook().getRepository().getName(),
                 command.getGithubWebhook().getRepository().getHtmlUrl(),

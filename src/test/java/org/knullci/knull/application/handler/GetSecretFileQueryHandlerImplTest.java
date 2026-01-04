@@ -40,7 +40,6 @@ class GetSecretFileQueryHandlerImplTest {
         assertEquals(id, result.getId());
         assertEquals("Test Secret", result.getName());
         assertEquals("Test Description", result.getDescription());
-        assertEquals("/mnt/secrets", result.getMountPath());
         verify(secretFileRepository).findById(id);
     }
 
@@ -62,15 +61,14 @@ class GetSecretFileQueryHandlerImplTest {
         // Arrange
         Long id = 1L;
         LocalDateTime now = LocalDateTime.now();
-        SecretFile secretFile = new SecretFile(
-                id,
-                "Test Secret",
-                "Test Description",
-                SecretFile.SecretType.FILE,
-                "encrypted-content",
-                "/mnt/secrets",
-                now,
-                now);
+        SecretFile secretFile = new SecretFile();
+        secretFile.setId(id);
+        secretFile.setName("Test Secret");
+        secretFile.setDescription("Test Description");
+        secretFile.setType(SecretFile.SecretType.FILE);
+        secretFile.setEncryptedContent("encrypted-content");
+        secretFile.setCreatedAt(now);
+        secretFile.setUpdatedAt(now);
         when(secretFileRepository.findById(id)).thenReturn(Optional.of(secretFile));
 
         // Act
@@ -81,7 +79,6 @@ class GetSecretFileQueryHandlerImplTest {
         assertEquals("Test Secret", result.getName());
         assertEquals("Test Description", result.getDescription());
         assertEquals("FILE", result.getType());
-        assertEquals("/mnt/secrets", result.getMountPath());
         assertEquals(now, result.getCreatedAt());
         assertEquals(now, result.getUpdatedAt());
     }
@@ -100,14 +97,14 @@ class GetSecretFileQueryHandlerImplTest {
     }
 
     private SecretFile createTestSecretFile(Long id) {
-        return new SecretFile(
-                id,
-                "Test Secret",
-                "Test Description",
-                SecretFile.SecretType.FILE,
-                "encrypted-content",
-                "/mnt/secrets",
-                LocalDateTime.now(),
-                LocalDateTime.now());
+        SecretFile secretFile = new SecretFile();
+        secretFile.setId(id);
+        secretFile.setName("Test Secret");
+        secretFile.setDescription("Test Description");
+        secretFile.setType(SecretFile.SecretType.FILE);
+        secretFile.setEncryptedContent("encrypted-content");
+        secretFile.setCreatedAt(LocalDateTime.now());
+        secretFile.setUpdatedAt(LocalDateTime.now());
+        return secretFile;
     }
 }

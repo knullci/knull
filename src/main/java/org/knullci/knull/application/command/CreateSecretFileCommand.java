@@ -14,6 +14,4 @@ public class CreateSecretFileCommand {
     private String type; // FILE, CERTIFICATE, SSH_KEY, KUBECONFIG, ENV_FILE
 
     private String content; // Plain text content (will be encrypted)
-
-    private String mountPath;
 }

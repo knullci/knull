@@ -34,7 +34,6 @@ public class GetSecretFileQueryHandlerImpl implements GetSecretFileQueryHandler 
         dto.setName(secretFile.getName());
         dto.setDescription(secretFile.getDescription());
         dto.setType(secretFile.getType().name());
-        dto.setMountPath(secretFile.getMountPath());
         dto.setCreatedAt(secretFile.getCreatedAt());
         dto.setUpdatedAt(secretFile.getUpdatedAt());
         return dto;

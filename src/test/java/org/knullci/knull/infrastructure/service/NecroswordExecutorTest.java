@@ -14,6 +14,7 @@ import org.knullci.knull.domain.enums.JobType;
 import org.knullci.knull.domain.model.*;
 import org.knullci.knull.domain.repository.BuildRepository;
 import org.knullci.knull.domain.repository.CredentialRepository;
+import org.knullci.knull.domain.repository.SecretFileRepository;
 import org.knullci.knull.proto.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -33,6 +34,9 @@ class NecroswordExecutorTest {
 
     @Mock
     private BuildRepository buildRepository;
+
+    @Mock
+    private SecretFileRepository secretFileRepository;
 
     @Mock
     private EncryptionService encryptionService;
@@ -57,6 +61,7 @@ class NecroswordExecutorTest {
                 credentialRepository,
                 encryptionService,
                 buildRepository,
+                secretFileRepository,
                 yamlObjectMapper);
 
         // Set configuration values via reflection

@@ -23,8 +23,6 @@ public class SecretFile {
 
     private String encryptedContent;
 
-    private String mountPath;
-
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

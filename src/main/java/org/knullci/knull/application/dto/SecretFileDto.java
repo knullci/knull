@@ -21,8 +21,6 @@ public class SecretFileDto {
 
     private String type;
 
-    private String mountPath;
-
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

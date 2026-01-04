@@ -91,17 +91,6 @@
                         </div>
                     </div>
 
-                    <!-- Mount Path -->
-                    <div class="mb-8">
-                        <label for="mountPath" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Mount Path (Optional)
-                        </label>
-                        <input type="text" id="mountPath" name="mountPath"
-                            placeholder="e.g., /app/.env, /etc/ssl/cert.pem"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm">
-                        <p class="mt-2 text-sm text-gray-600">Where to mount this file during build execution</p>
-                    </div>
-
                     <!-- Actions -->
                     <div class="flex items-center justify-end gap-4 pt-6 border-t border-gray-200">
                         <a th:href="@{/secret-files}"

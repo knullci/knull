@@ -36,8 +36,7 @@ class CreateSecretFileCommandHandlerImplTest {
                 "test-secret",
                 "Test description",
                 "FILE",
-                "test-content",
-                "/path/to/mount");
+                "test-content");
     }
 
     @Test
@@ -106,8 +105,7 @@ class CreateSecretFileCommandHandlerImplTest {
                 "",
                 "Test description",
                 "FILE",
-                "test-content",
-                "/path/to/mount");
+                "test-content");
         when(secretFileRepository.existsByName(anyString())).thenReturn(false);
         when(encryptionService.encrypt(anyString())).thenReturn("encrypted-content");
         when(secretFileRepository.save(any(SecretFile.class))).thenAnswer(invocation -> {
@@ -131,8 +129,7 @@ class CreateSecretFileCommandHandlerImplTest {
                 "test-secret",
                 null,
                 "FILE",
-                "test-content",
-                "/path/to/mount");
+                "test-content");
         when(secretFileRepository.existsByName(anyString())).thenReturn(false);
         when(encryptionService.encrypt(anyString())).thenReturn("encrypted-content");
         when(secretFileRepository.save(any(SecretFile.class))).thenAnswer(invocation -> {

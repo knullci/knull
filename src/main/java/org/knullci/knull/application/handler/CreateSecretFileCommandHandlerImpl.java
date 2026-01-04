@@ -45,7 +45,6 @@ public class CreateSecretFileCommandHandlerImpl implements CreateSecretFileComma
         secretFile.setDescription(command.getDescription());
         secretFile.setType(SecretFile.SecretType.valueOf(command.getType()));
         secretFile.setEncryptedContent(encryptedContent);
-        secretFile.setMountPath(command.getMountPath());
         secretFile.setCreatedAt(LocalDateTime.now());
         secretFile.setUpdatedAt(LocalDateTime.now());
 
@@ -62,7 +61,6 @@ public class CreateSecretFileCommandHandlerImpl implements CreateSecretFileComma
         dto.setName(secretFile.getName());
         dto.setDescription(secretFile.getDescription());
         dto.setType(secretFile.getType().name());
-        dto.setMountPath(secretFile.getMountPath());
         dto.setCreatedAt(secretFile.getCreatedAt());
         dto.setUpdatedAt(secretFile.getUpdatedAt());
         return dto;

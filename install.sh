@@ -7,7 +7,7 @@ set -e
 
 REPO="knullci/knull"
 BINARY_NAME="knull"
-INSTALL_DIR="/usr/local/bin"
+INSTALL_DIR="/opt/knull"
 DATA_DIR="/var/lib/knull"
 CONFIG_DIR="/etc/knull"
 SERVICE_USER="knull"
@@ -72,7 +72,7 @@ ARCH=$(uname -m)
 
 case "$ARCH" in
     x86_64)
-        ARCH="amd64"
+        ARCH="x64"
         ;;
     aarch64|arm64)
         ARCH="arm64"
@@ -125,45 +125,95 @@ else
     echo -e "Version: ${BLUE}v${VERSION}${NC}"
 fi
 
-# Download
-DOWNLOAD_URL="https://github.com/${REPO}/releases/download/v${VERSION}/${BINARY_NAME}-${VERSION}-${PLATFORM}"
+# Download bundled distribution (includes JRE)
+BUNDLED_URL="https://github.com/${REPO}/releases/download/v${VERSION}/${BINARY_NAME}-${VERSION}-${PLATFORM}-bundled.tar.gz"
 echo ""
-echo "Downloading Knull CI..."
+echo "Downloading Knull CI (bundled with JRE)..."
 
 TMP_DIR=$(mktemp -d)
-TMP_FILE="${TMP_DIR}/${BINARY_NAME}"
 
-if ! curl -fsSL -o "$TMP_FILE" "$DOWNLOAD_URL"; then
-    # Try JAR fallback
-    echo -e "${YELLOW}Native binary not available, trying JAR...${NC}"
+download_bundled() {
+    if curl -fsSL -o "${TMP_DIR}/knull-bundled.tar.gz" "$BUNDLED_URL" 2>/dev/null; then
+        return 0
+    fi
+    return 1
+}
+
+download_jar() {
     JAR_URL="https://github.com/${REPO}/releases/download/v${VERSION}/${BINARY_NAME}-${VERSION}.jar"
-    if curl -fsSL -o "${TMP_FILE}.jar" "$JAR_URL"; then
+    if curl -fsSL -o "${TMP_DIR}/knull.jar" "$JAR_URL" 2>/dev/null; then
+        return 0
+    fi
+    return 1
+}
+
+INSTALL_TYPE=""
+
+if download_bundled; then
+    echo -e "${GREEN}Downloaded bundled distribution${NC}"
+    INSTALL_TYPE="bundled"
+else
+    echo -e "${YELLOW}Bundled distribution not available, trying JAR...${NC}"
+    if download_jar; then
+        # Check if Java is installed
+        if ! command -v java &> /dev/null; then
+            echo -e "${YELLOW}Java not found. Installing OpenJDK 21...${NC}"
+            if command -v apt-get &> /dev/null; then
+                $SUDO apt-get update -qq
+                $SUDO apt-get install -y -qq openjdk-21-jre-headless
+            elif command -v yum &> /dev/null; then
+                $SUDO yum install -y java-21-openjdk-headless
+            elif command -v dnf &> /dev/null; then
+                $SUDO dnf install -y java-21-openjdk-headless
+            else
+                echo -e "${RED}Error: Cannot install Java. Please install Java 21+ manually.${NC}"
+                rm -rf "$TMP_DIR"
+                exit 1
+            fi
+        fi
         echo -e "${GREEN}Downloaded JAR version${NC}"
-        $SUDO mkdir -p "${INSTALL_DIR}"
-        $SUDO mv "${TMP_FILE}.jar" "${INSTALL_DIR}/${BINARY_NAME}.jar"
-        
-        # Create wrapper script for JAR
-        cat > "${TMP_DIR}/knull-wrapper" << 'EOF'
-#!/bin/bash
-exec java -jar /usr/local/bin/knull.jar "$@"
-EOF
-        $SUDO mv "${TMP_DIR}/knull-wrapper" "${INSTALL_DIR}/${BINARY_NAME}"
-        $SUDO chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
-        IS_JAR=true
+        INSTALL_TYPE="jar"
     else
         echo -e "${RED}Error: Download failed${NC}"
         rm -rf "$TMP_DIR"
         exit 1
     fi
-else
-    IS_JAR=false
-    chmod +x "$TMP_FILE"
-    $SUDO mv "$TMP_FILE" "${INSTALL_DIR}/${BINARY_NAME}"
 fi
 
-# Create data directory
+# Create directories
+$SUDO mkdir -p "$INSTALL_DIR"
 $SUDO mkdir -p "$DATA_DIR"
 $SUDO mkdir -p "$CONFIG_DIR"
+
+# Install based on type
+if [ "$INSTALL_TYPE" = "bundled" ]; then
+    echo "Installing bundled distribution..."
+    $SUDO tar -xzf "${TMP_DIR}/knull-bundled.tar.gz" -C /opt --strip-components=0
+    EXTRACTED_DIR=$(tar -tzf "${TMP_DIR}/knull-bundled.tar.gz" | head -1 | cut -f1 -d"/")
+    $SUDO mv "/opt/${EXTRACTED_DIR}" "$INSTALL_DIR" 2>/dev/null || true
+    
+    # Create symlink
+    $SUDO ln -sf "${INSTALL_DIR}/bin/knull" /usr/local/bin/knull
+    
+    EXEC_START="${INSTALL_DIR}/bin/knull --server.port=\${SERVER_PORT}"
+    
+elif [ "$INSTALL_TYPE" = "jar" ]; then
+    echo "Installing JAR distribution..."
+    $SUDO mv "${TMP_DIR}/knull.jar" "${INSTALL_DIR}/knull.jar"
+    
+    # Create launcher script
+    $SUDO tee "${INSTALL_DIR}/bin/knull" > /dev/null << 'LAUNCHER'
+#!/bin/bash
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KNULL_HOME="$(dirname "$SCRIPT_DIR")"
+exec java -Xmx512m -jar "$KNULL_HOME/knull.jar" "$@"
+LAUNCHER
+    $SUDO mkdir -p "${INSTALL_DIR}/bin"
+    $SUDO chmod +x "${INSTALL_DIR}/bin/knull"
+    $SUDO ln -sf "${INSTALL_DIR}/bin/knull" /usr/local/bin/knull
+    
+    EXEC_START="/usr/bin/java -Xmx512m -jar ${INSTALL_DIR}/knull.jar --server.port=\${SERVER_PORT}"
+fi
 
 # Create config file
 echo "Creating configuration..."
@@ -176,35 +226,27 @@ SERVER_PORT=${PORT}
 
 # Data directory
 DATA_DIR=${DATA_DIR}
-
-# Additional Java options (for JAR version)
-# JAVA_OPTS="-Xmx512m"
 EOF
 
-# Setup systemd service (Linux only)
-if [ "$SKIP_SERVICE" = false ] && [ "$OS" = "linux" ]; then
+# Create service user
+if ! id "$SERVICE_USER" &>/dev/null; then
+    $SUDO useradd -r -s /bin/false -d "$DATA_DIR" "$SERVICE_USER" 2>/dev/null || true
+fi
+
+# Set permissions
+$SUDO chown -R "$SERVICE_USER:$SERVICE_USER" "$DATA_DIR"
+$SUDO chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR"
+$SUDO chmod -R 755 "$INSTALL_DIR"
+
+# Setup systemd service
+if [ "$SKIP_SERVICE" = false ]; then
     echo ""
     echo "Setting up systemd service..."
-    
-    # Create service user if not exists
-    if ! id "$SERVICE_USER" &>/dev/null; then
-        $SUDO useradd --system --no-create-home --shell /bin/false "$SERVICE_USER" 2>/dev/null || true
-    fi
-    
-    # Set ownership
-    $SUDO chown -R "$SERVICE_USER:$SERVICE_USER" "$DATA_DIR" 2>/dev/null || true
-    
-    # Create systemd service
-    if [ "$IS_JAR" = true ]; then
-        EXEC_START="/usr/bin/java -jar ${INSTALL_DIR}/${BINARY_NAME}.jar --server.port=\${SERVER_PORT}"
-    else
-        EXEC_START="${INSTALL_DIR}/${BINARY_NAME} --server.port=\${SERVER_PORT}"
-    fi
     
     $SUDO tee /etc/systemd/system/knull.service > /dev/null << EOF
 [Unit]
 Description=Knull CI/CD Server
-Documentation=https://github.com/knullci/knull-ci-cd
+Documentation=https://github.com/knullci/knull
 After=network.target
 
 [Service]
@@ -217,7 +259,7 @@ Restart=on-failure
 RestartSec=10
 WorkingDirectory=${DATA_DIR}
 
-# Security
+# Security settings
 NoNewPrivileges=true
 PrivateTmp=true
 
@@ -230,28 +272,21 @@ SyslogIdentifier=knull
 WantedBy=multi-user.target
 EOF
 
-    # Reload systemd
     $SUDO systemctl daemon-reload
-    
-    # Enable service
     $SUDO systemctl enable knull
-    
-    # Start service
-    echo ""
-    echo "Starting Knull CI..."
     $SUDO systemctl start knull
     
     sleep 2
     
-    # Check status
     if $SUDO systemctl is-active --quiet knull; then
-        echo -e "${GREEN}✓ Knull CI is running!${NC}"
+        echo -e "${GREEN}Knull CI started successfully!${NC}"
     else
         echo -e "${YELLOW}Warning: Service may not have started correctly${NC}"
-        echo "Check logs with: sudo journalctl -u knull -f"
+        echo -e "Check logs with: ${BLUE}sudo journalctl -u knull -f${NC}"
     fi
 fi
 
+# Cleanup
 rm -rf "$TMP_DIR"
 
 echo ""
@@ -262,13 +297,13 @@ echo ""
 echo -e "Access Knull CI at: ${BLUE}http://localhost:${PORT}${NC}"
 echo ""
 echo "Useful commands:"
-echo -e "  ${YELLOW}sudo systemctl status knull${NC}    - Check status"
-echo -e "  ${YELLOW}sudo systemctl restart knull${NC}   - Restart"
-echo -e "  ${YELLOW}sudo systemctl stop knull${NC}      - Stop"
-echo -e "  ${YELLOW}sudo journalctl -u knull -f${NC}    - View logs"
+echo -e "  ${BLUE}sudo systemctl status knull${NC}    - Check status"
+echo -e "  ${BLUE}sudo systemctl restart knull${NC}   - Restart"
+echo -e "  ${BLUE}sudo systemctl stop knull${NC}      - Stop"
+echo -e "  ${BLUE}sudo journalctl -u knull -f${NC}    - View logs"
 echo ""
-echo "Configuration: ${CONFIG_DIR}/knull.conf"
+echo -e "Configuration: ${BLUE}${CONFIG_DIR}/knull.conf${NC}"
 echo ""
 echo "To change the port, edit ${CONFIG_DIR}/knull.conf and restart:"
-echo "  sudo nano ${CONFIG_DIR}/knull.conf"
-echo "  sudo systemctl restart knull"
+echo -e "  ${BLUE}sudo nano ${CONFIG_DIR}/knull.conf${NC}"
+echo -e "  ${BLUE}sudo systemctl restart knull${NC}"

@@ -23,6 +23,7 @@ NC='\033[0m' # No Color
 # Parse arguments
 PORT=$DEFAULT_PORT
 SKIP_SERVICE=false
+VERSION=""
 while [[ $# -gt 0 ]]; do
     case $1 in
         --port)
@@ -31,6 +32,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         --port=*)
             PORT="${1#*=}"
+            shift
+            ;;
+        --version)
+            VERSION="$2"
+            shift 2
+            ;;
+        --version=*)
+            VERSION="${1#*=}"
             shift
             ;;
         --no-service)
@@ -92,20 +101,32 @@ esac
 echo -e "Platform: ${BLUE}${PLATFORM}${NC}"
 echo -e "Port: ${BLUE}${PORT}${NC}"
 
-# Get latest version
+# Get version (use provided or fetch latest)
 echo ""
-echo "Fetching latest version..."
-LATEST_VERSION=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v?([^"]+)".*/\1/')
-
-if [ -z "$LATEST_VERSION" ]; then
-    echo -e "${YELLOW}Warning: Could not determine latest version, using 'latest'${NC}"
-    LATEST_VERSION="latest"
+if [ -n "$VERSION" ]; then
+    # Remove 'v' prefix if provided
+    VERSION="${VERSION#v}"
+    echo -e "Using specified version: ${BLUE}v${VERSION}${NC}"
+else
+    echo "Fetching latest version..."
+    VERSION=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v?([^"]+)".*/\1/')
+    
+    if [ -z "$VERSION" ]; then
+        # Fallback: try to get the first release (including prereleases)
+        echo -e "${YELLOW}No stable release found, checking for prereleases...${NC}"
+        VERSION=$(curl -s "https://api.github.com/repos/${REPO}/releases" | grep '"tag_name":' | head -1 | sed -E 's/.*"v?([^"]+)".*/\1/')
+    fi
+    
+    if [ -z "$VERSION" ]; then
+        echo -e "${RED}Error: No releases found. Please specify a version with --version${NC}"
+        exit 1
+    fi
+    
+    echo -e "Version: ${BLUE}v${VERSION}${NC}"
 fi
 
-echo -e "Version: ${BLUE}v${LATEST_VERSION}${NC}"
-
 # Download
-DOWNLOAD_URL="https://github.com/${REPO}/releases/download/v${LATEST_VERSION}/${BINARY_NAME}-${LATEST_VERSION}-${PLATFORM}"
+DOWNLOAD_URL="https://github.com/${REPO}/releases/download/v${VERSION}/${BINARY_NAME}-${VERSION}-${PLATFORM}"
 echo ""
 echo "Downloading Knull CI..."
 
@@ -115,7 +136,7 @@ TMP_FILE="${TMP_DIR}/${BINARY_NAME}"
 if ! curl -fsSL -o "$TMP_FILE" "$DOWNLOAD_URL"; then
     # Try JAR fallback
     echo -e "${YELLOW}Native binary not available, trying JAR...${NC}"
-    JAR_URL="https://github.com/${REPO}/releases/download/v${LATEST_VERSION}/${BINARY_NAME}-${LATEST_VERSION}.jar"
+    JAR_URL="https://github.com/${REPO}/releases/download/v${VERSION}/${BINARY_NAME}-${VERSION}.jar"
     if curl -fsSL -o "${TMP_FILE}.jar" "$JAR_URL"; then
         echo -e "${GREEN}Downloaded JAR version${NC}"
         $SUDO mkdir -p "${INSTALL_DIR}"

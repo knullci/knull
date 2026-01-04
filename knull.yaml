@@ -1,4 +1,4 @@
-name: Knull CI/CD Build Pipeline
+name: Knull Java CI/CD Build Pipeline
 steps:
     - name: Compile Java Sources
       run:

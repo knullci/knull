@@ -43,40 +43,82 @@ We believe in using the best tools for the job to ensure stability and speed.
 
 ## ⚡ Getting Started
 
-### Prerequisites
+### Quick Install (Recommended)
 
-- **Java 21+**
-- **Maven 3.8+**
+One-line install for Ubuntu/Debian with automatic systemd service setup:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/knullci/knull/main/install.sh | sudo bash
+```
+
+This will:
+- Download the latest native binary
+- Install to `/usr/local/bin/knull`
+- Create systemd service
+- Start Knull CI on port 8080
+- Enable auto-start on boot
+
+#### Custom Port
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/knullci/knull/main/install.sh | sudo bash -s -- --port 9090
+```
+
+#### Install Without Service (Manual Control)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/knullci/knull/main/install.sh | sudo bash -s -- --no-service
+```
+
+### Service Management
+
+```bash
+# Check status
+sudo systemctl status knull
+
+# Stop/Start/Restart
+sudo systemctl stop knull
+sudo systemctl start knull
+sudo systemctl restart knull
+
+# View logs
+sudo journalctl -u knull -f
+
+# Change port after installation
+sudo nano /etc/knull/knull.conf   # Edit SERVER_PORT=9090
+sudo systemctl restart knull
+```
+
+### Manual Installation
+
+#### Prerequisites
+
+- **Java 21+** (for JAR version)
+- **Maven 3.8+** (for building from source)
 - **Git**
 
-### Installation
+#### From Source
 
-#### 1. Clone the Repository
 ```bash
-git clone https://github.com/deepakraj5/knull-ci-cd.git
-cd knull-ci-cd
-```
-
-#### 2. Configure Environment
-Set up your encryption key (optional but recommended for security):
-```bash
-export KNULL_ENCRYPTION_SECRET_KEY="your-secure-32-char-key-here"
-```
-
-#### 3. Build & Run (JVM Mode)
-```bash
+git clone https://github.com/knullci/knull.git
+cd knull
 mvn clean package -DskipTests
-mvn spring-boot:run
+java -jar target/knull-*.jar --server.port=8080
 ```
-Visit `http://localhost:8080` to see KnullCI in action.
 
-#### 4. Build Native Image (Optional)
-For extreme performance:
+#### Native Binary (GraalVM)
+
 ```bash
-./build-native.sh
-./target/knull
+# Download from releases
+curl -L -o knull https://github.com/knullci/knull/releases/latest/download/knull-linux-amd64
+chmod +x knull
+sudo mv knull /usr/local/bin/
+
+# Run
+knull --server.port=8080
 ```
-*Requires GraalVM JDK 21+.*
+
+Visit `http://localhost:8080` to see KnullCI in action.
 
 ---
 

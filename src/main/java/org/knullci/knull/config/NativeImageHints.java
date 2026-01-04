@@ -47,6 +47,51 @@ public class NativeImageHints {
             registerCollectionHints(hints, Set.class);
             registerCollectionHints(hints, Collection.class);
             registerMapHints(hints, Map.class);
+
+            // Register domain model classes for Thymeleaf SpEL access
+            registerDomainClass(hints, "org.knullci.knull.domain.model.KnullUserDetails");
+            registerDomainClass(hints, "org.knullci.knull.domain.model.User");
+            registerDomainClass(hints, "org.knullci.knull.domain.model.Job");
+            registerDomainClass(hints, "org.knullci.knull.domain.model.Build");
+            registerDomainClass(hints, "org.knullci.knull.domain.model.BuildStep");
+            registerDomainClass(hints, "org.knullci.knull.domain.model.Credentials");
+            registerDomainClass(hints, "org.knullci.knull.domain.model.JobConfig");
+            registerDomainClass(hints, "org.knullci.knull.domain.model.SimpleJobConfig");
+            registerDomainClass(hints, "org.knullci.knull.domain.model.MultiBranchJobConfig");
+            registerDomainClass(hints, "org.knullci.knull.domain.model.Settings");
+            registerDomainClass(hints, "org.knullci.knull.domain.model.SecretFile");
+            registerDomainClass(hints, "org.knullci.knull.domain.model.TokenCredential");
+            registerDomainClass(hints, "org.knullci.knull.domain.model.UsernamePasswordCredential");
+            registerDomainClass(hints, "org.knullci.knull.domain.enums.Role");
+            registerDomainClass(hints, "org.knullci.knull.domain.enums.Permission");
+
+            // Register String methods for SpEL
+            registerStringHints(hints);
+        }
+
+        private void registerDomainClass(RuntimeHints hints, String className) {
+            try {
+                Class<?> clazz = Class.forName(className);
+                hints.reflection().registerType(clazz, builder -> {
+                    builder.withMembers(
+                            org.springframework.aot.hint.MemberCategory.INVOKE_PUBLIC_METHODS,
+                            org.springframework.aot.hint.MemberCategory.INVOKE_DECLARED_METHODS,
+                            org.springframework.aot.hint.MemberCategory.INTROSPECT_PUBLIC_METHODS,
+                            org.springframework.aot.hint.MemberCategory.INTROSPECT_DECLARED_METHODS,
+                            org.springframework.aot.hint.MemberCategory.DECLARED_FIELDS,
+                            org.springframework.aot.hint.MemberCategory.PUBLIC_FIELDS);
+                });
+            } catch (ClassNotFoundException e) {
+                // Class not found, skip
+            }
+        }
+
+        private void registerStringHints(RuntimeHints hints) {
+            hints.reflection().registerType(String.class, builder -> {
+                builder.withMembers(
+                        org.springframework.aot.hint.MemberCategory.INVOKE_PUBLIC_METHODS,
+                        org.springframework.aot.hint.MemberCategory.INTROSPECT_PUBLIC_METHODS);
+            });
         }
 
         private void registerCollectionHints(RuntimeHints hints, Class<?> clazz) {

@@ -77,7 +77,8 @@
     },
     {
         "name": "java.lang.String",
-        "allPublicMethods": true
+        "allPublicMethods": true,
+        "allDeclaredMethods": true
     },
     {
         "name": "java.lang.Boolean",
@@ -89,6 +90,92 @@
     },
     {
         "name": "java.lang.Long",
+        "allPublicMethods": true
+    },
+    {
+        "name": "org.knullci.knull.domain.model.KnullUserDetails",
+        "allPublicMethods": true,
+        "allDeclaredMethods": true,
+        "allDeclaredFields": true
+    },
+    {
+        "name": "org.knullci.knull.domain.model.User",
+        "allPublicMethods": true,
+        "allDeclaredMethods": true,
+        "allDeclaredFields": true
+    },
+    {
+        "name": "org.knullci.knull.domain.model.Job",
+        "allPublicMethods": true,
+        "allDeclaredMethods": true,
+        "allDeclaredFields": true
+    },
+    {
+        "name": "org.knullci.knull.domain.model.Build",
+        "allPublicMethods": true,
+        "allDeclaredMethods": true,
+        "allDeclaredFields": true
+    },
+    {
+        "name": "org.knullci.knull.domain.model.BuildStep",
+        "allPublicMethods": true,
+        "allDeclaredMethods": true,
+        "allDeclaredFields": true
+    },
+    {
+        "name": "org.knullci.knull.domain.model.Credentials",
+        "allPublicMethods": true,
+        "allDeclaredMethods": true,
+        "allDeclaredFields": true
+    },
+    {
+        "name": "org.knullci.knull.domain.model.JobConfig",
+        "allPublicMethods": true,
+        "allDeclaredMethods": true,
+        "allDeclaredFields": true
+    },
+    {
+        "name": "org.knullci.knull.domain.model.SimpleJobConfig",
+        "allPublicMethods": true,
+        "allDeclaredMethods": true,
+        "allDeclaredFields": true
+    },
+    {
+        "name": "org.knullci.knull.domain.model.MultiBranchJobConfig",
+        "allPublicMethods": true,
+        "allDeclaredMethods": true,
+        "allDeclaredFields": true
+    },
+    {
+        "name": "org.knullci.knull.domain.model.Settings",
+        "allPublicMethods": true,
+        "allDeclaredMethods": true,
+        "allDeclaredFields": true
+    },
+    {
+        "name": "org.knullci.knull.domain.model.SecretFile",
+        "allPublicMethods": true,
+        "allDeclaredMethods": true,
+        "allDeclaredFields": true
+    },
+    {
+        "name": "org.knullci.knull.domain.model.TokenCredential",
+        "allPublicMethods": true,
+        "allDeclaredMethods": true,
+        "allDeclaredFields": true
+    },
+    {
+        "name": "org.knullci.knull.domain.model.UsernamePasswordCredential",
+        "allPublicMethods": true,
+        "allDeclaredMethods": true,
+        "allDeclaredFields": true
+    },
+    {
+        "name": "org.knullci.knull.domain.enums.Role",
+        "allPublicMethods": true
+    },
+    {
+        "name": "org.knullci.knull.domain.enums.Permission",
         "allPublicMethods": true
     }
 ]

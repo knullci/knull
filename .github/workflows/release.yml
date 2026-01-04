@@ -61,8 +61,7 @@ jobs:
           
       - name: Build Static Native Image
         run: |
-          mvn -Pnative native:compile -DskipTests \
-            -Dnative.image.buildArgs="--static --libc=musl"
+          mvn -Pnative native:compile -DskipTests
           
       - name: Rename binary
         run: |
@@ -187,4 +186,3 @@ jobs:
           files: release/*
           draft: false
           prerelease: ${{ contains(steps.version.outputs.version, 'rc') || contains(steps.version.outputs.version, 'beta') || contains(steps.version.outputs.version, 'alpha') }}
-

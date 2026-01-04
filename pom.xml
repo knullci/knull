@@ -166,6 +166,8 @@
 								<arg>--enable-url-protocols=http,https</arg>
 								<arg>--initialize-at-build-time=org.slf4j</arg>
 								<arg>--initialize-at-build-time=ch.qos.logback</arg>
+								<arg>--static</arg>
+								<arg>--libc=musl</arg>
 							</buildArgs>
 						</configuration>
 						<executions>

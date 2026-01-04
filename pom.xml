@@ -165,6 +165,7 @@
 								<arg>-H:+ReportExceptionStackTraces</arg>
 								<arg>--enable-url-protocols=http,https</arg>
 								<arg>--initialize-at-build-time=org.slf4j</arg>
+								<arg>--initialize-at-build-time=ch.qos.logback</arg>
 							</buildArgs>
 						</configuration>
 						<executions>

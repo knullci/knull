@@ -74,43 +74,63 @@ jobs:
           name: knull-linux-amd64
           path: target/knull-*-linux-amd64
 
-  build-native-macos:
-    name: Build Native (macOS)
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up GraalVM
-        uses: graalvm/setup-graalvm@v1
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: 'graalvm'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: Build Native Image
-        run: |
-          mvn -Pnative native:compile -DskipTests
-          
-      - name: Rename binary
-        run: |
-          VERSION="${{ github.ref_name || inputs.version }}"
-          VERSION="${VERSION#v}"
-          mv target/knull target/knull-${VERSION}-darwin-arm64
-          
-      - name: Upload macOS binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: knull-darwin-arm64
-          path: target/knull-*-darwin-arm64
+  # TODO: Enable macOS build when GraalVM issues are resolved
+  # build-native-macos:
+  #   name: Build Native (macOS)
+  #   runs-on: macos-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     
+  #     - name: Set up GraalVM
+  #       uses: graalvm/setup-graalvm@v1
+  #       with:
+  #         java-version: ${{ env.JAVA_VERSION }}
+  #         distribution: 'graalvm'
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
+  #         
+  #     - name: Build Native Image
+  #       run: |
+  #         mvn -Pnative native:compile -DskipTests
+  #         
+  #     - name: Rename binary
+  #       run: |
+  #         VERSION="${{ github.ref_name || inputs.version }}"
+  #         VERSION="${VERSION#v}"
+  #         mv target/knull target/knull-${VERSION}-darwin-arm64
+  #         
+  #     - name: Upload macOS binary
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: knull-darwin-arm64
+  #         path: target/knull-*-darwin-arm64
 
   release:
     name: Create Release
-    needs: [build-jar, build-native-linux, build-native-macos]
+    needs: [build-jar, build-native-linux]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Get version
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+            VERSION="${VERSION#v}"
+            echo "version=v${VERSION}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create tag for manual release
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.version.outputs.version }}" -m "Release ${{ steps.version.outputs.version }}"
+          git push origin "${{ steps.version.outputs.version }}"
       
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -131,9 +151,10 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          name: Knull CI ${{ github.ref_name || inputs.version }}
+          tag_name: ${{ steps.version.outputs.version }}
+          name: Knull CI ${{ steps.version.outputs.version }}
           body: |
-            ## Knull CI ${{ github.ref_name || inputs.version }}
+            ## Knull CI ${{ steps.version.outputs.version }}
             
             ### Quick Install (Ubuntu/Debian)
             
@@ -152,16 +173,16 @@ jobs:
             |----------|------|
             | Universal (JAR) | `knull-*.jar` |
             | Linux (x64) | `knull-*-linux-amd64` |
-            | macOS (ARM64) | `knull-*-darwin-arm64` |
             
             ### Manual Installation
             
             ```bash
             # Download the binary
-            curl -L -o knull https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/knull-${{ github.ref_name }}-linux-amd64
+            curl -L -o knull https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/knull-${{ steps.version.outputs.version }}-linux-amd64
             chmod +x knull
             sudo mv knull /usr/local/bin/
             ```
           files: release/*
           draft: false
-          prerelease: ${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
+          prerelease: ${{ contains(steps.version.outputs.version, 'rc') || contains(steps.version.outputs.version, 'beta') || contains(steps.version.outputs.version, 'alpha') }}
+

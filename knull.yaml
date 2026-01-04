@@ -10,7 +10,7 @@ steps:
         tool: mvn
         args: ["test"]
     
-    - name: Package Application
+    - name: Package Application (no tests)
       run:
         tool: mvn
         args: ["package", "-DskipTests"]

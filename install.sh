@@ -188,9 +188,13 @@ $SUDO mkdir -p "$CONFIG_DIR"
 # Install based on type
 if [ "$INSTALL_TYPE" = "bundled" ]; then
     echo "Installing bundled distribution..."
-    $SUDO tar -xzf "${TMP_DIR}/knull-bundled.tar.gz" -C /opt --strip-components=0
+    # Extract to temp location first
+    $SUDO tar -xzf "${TMP_DIR}/knull-bundled.tar.gz" -C "${TMP_DIR}"
     EXTRACTED_DIR=$(tar -tzf "${TMP_DIR}/knull-bundled.tar.gz" | head -1 | cut -f1 -d"/")
-    $SUDO mv "/opt/${EXTRACTED_DIR}" "$INSTALL_DIR" 2>/dev/null || true
+    
+    # Move contents to install directory
+    $SUDO rm -rf "${INSTALL_DIR}"
+    $SUDO mv "${TMP_DIR}/${EXTRACTED_DIR}" "${INSTALL_DIR}"
     
     # Create symlink
     $SUDO ln -sf "${INSTALL_DIR}/bin/knull" /usr/local/bin/knull

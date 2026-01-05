@@ -21,7 +21,6 @@ steps:
         tool: docker
         args: ["build", "--target", "production", "-t", "knull-ci-cd:latest", "."]
 
-
     - name: Cleanup Build Images
       run:
         tool: docker

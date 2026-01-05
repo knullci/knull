@@ -1,17 +1,17 @@
 name: Knull Java CI/CD Build Pipeline
 
 steps:
-    - name: Compile Java Sources (Docker)
+    - name: Compile Java Sources
       run:
         tool: docker
         args: ["build", "--target", "compile", "-t", "knull-ci-cd:compile", "."]
 
-    - name: Run Tests (Docker)
+    - name: Run Tests
       run:
         tool: docker
         args: ["build", "--target", "test", "-t", "knull-ci-cd:test", "."]
 
-    - name: Package Application (Docker)
+    - name: Package Application
       run:
         tool: docker
         args: ["build", "--target", "package", "-t", "knull-ci-cd:package", "."]

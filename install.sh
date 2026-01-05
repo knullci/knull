@@ -183,6 +183,7 @@ fi
 # Create directories
 $SUDO mkdir -p "$INSTALL_DIR"
 $SUDO mkdir -p "$DATA_DIR"
+$SUDO mkdir -p "$DATA_DIR/workspace"
 $SUDO mkdir -p "$CONFIG_DIR"
 
 # Install based on type

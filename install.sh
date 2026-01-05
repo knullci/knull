@@ -183,7 +183,6 @@ fi
 # Create directories
 $SUDO mkdir -p "$INSTALL_DIR"
 $SUDO mkdir -p "$DATA_DIR"
-$SUDO mkdir -p "$DATA_DIR/workspace"
 $SUDO mkdir -p "$CONFIG_DIR"
 
 # Install based on type
@@ -231,6 +230,10 @@ SERVER_PORT=${PORT}
 
 # Data directory
 DATA_DIR=${DATA_DIR}
+
+# Workspace base path (shared with Necrosword executor)
+# Using /tmp for permission-less access
+KNULL_WORKSPACE_BASE_PATH=/tmp/knull-workspace
 EOF
 
 # Create service user

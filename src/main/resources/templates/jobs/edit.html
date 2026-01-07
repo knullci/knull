@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Job | KnullCI</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+</head>
+
+<body class="bg-gray-100 text-gray-800">
+
+    <div th:replace="~{layout/navbar :: body}"></div>
+
+    <!-- Page Container -->
+    <div id="main-content" class="main-content ml-64 p-8 transition-all duration-300">
+        <div class="max-w-4xl mx-auto">
+
+            <!-- Header -->
+            <div class="mb-8">
+                <div class="flex items-center gap-3 mb-2">
+                    <a th:href="@{'/jobs/' + ${jobId}}" class="text-gray-500 hover:text-gray-700">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </a>
+                    <h1 class="text-3xl font-semibold flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" viewBox="0 0 24 24"
+                            fill="currentColor">
+                            <path d="M5 3a2 2 0 00-2 2v2h2V5h14v14h-2v2h2a2 2 0 002-2V5a2 2 0 00-2-2H5z" />
+                            <path
+                                d="M3 9a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V9zm12 0H5v10h10V9z" />
+                        </svg>
+                        Edit Job
+                    </h1>
+                </div>
+                <p class="text-gray-600 ml-14">Update your CI/CD job configuration</p>
+            </div>
+
+            <!-- Form Container -->
+            <div class="bg-white shadow-lg rounded-xl p-8">
+                <form th:action="@{'/jobs/' + ${jobId} + '/edit'}" method="post" th:object="${jobForm}"
+                    class="space-y-8">
+
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                    <!-- Basic Information Section -->
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b flex items-center gap-2">
+                            <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Basic Information
+                        </h2>
+
+                        <div class="space-y-5">
+                            <!-- Job Name -->
+                            <div>
+                                <label class="block mb-2 font-medium text-gray-700">
+                                    Job Name <span class="text-red-500">*</span>
+                                </label>
+                                <input th:field="*{name}" type="text" placeholder="e.g., Backend API Build" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                                <p class="text-sm text-gray-500 mt-1">A descriptive name for your CI/CD job</p>
+                            </div>
+
+                            <!-- Description -->
+                            <div>
+                                <label class="block mb-2 font-medium text-gray-700">Description</label>
+                                <textarea th:field="*{description}" rows="3"
+                                    placeholder="Describe what this job does..."
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                            </div>
+
+                            <!-- Cleanup Workspace -->
+                            <div>
+                                <label class="block mb-2 font-medium text-gray-700">
+                                    Cleanup Workspace <span class="text-red-500">*</span>
+                                </label>
+                                <select th:field="*{cleanupWorkspace}" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+
+                            <!-- Checkout Latest Commit-->
+                            <div>
+                                <label class="block mb-2 font-medium text-gray-700">
+                                    Checkout Latest Commit (If yes, the job will checkout the latest commit from the
+                                    repository)<span class="text-red-500">*</span>
+                                </label>
+                                <select th:field="*{checkoutLatestCommit}" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+
+                            <!-- Job Type -->
+                            <div>
+                                <label class="block mb-2 font-medium text-gray-700">
+                                    Job Type <span class="text-red-500">*</span>
+                                </label>
+                                <select th:field="*{jobType}" id="jobTypeSelect" required
+                                    onchange="toggleJobTypeFields()"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">-- Select Job Type --</option>
+                                    <option th:each="t : ${jobTypes}" th:value="${t}"
+                                        th:text="${#strings.capitalize(#strings.toLowerCase(t))}">
+                                    </option>
+                                </select>
+                                <p class="text-sm text-gray-500 mt-1">
+                                    <span class="font-medium">Simple:</span> Single branch workflow |
+                                    <span class="font-medium">Multibranch:</span> Multiple branches with pattern
+                                    matching
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Job Configuration Section -->
+                    <div id="jobConfigSection" style="display: none;">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b flex items-center gap-2">
+                            <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Configuration
+                        </h2>
+
+                        <div class="space-y-5">
+                            <!-- Git Repository -->
+                            <div>
+                                <label class="block mb-2 font-medium text-gray-700 flex items-center gap-2">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                                    </svg>
+                                    Git Repository URL
+                                </label>
+                                <input th:field="*{gitRepository}" type="url"
+                                    placeholder="https://github.com/username/repository.git"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                                <p class="text-sm text-gray-500 mt-1">The full URL to your Git repository</p>
+                            </div>
+
+                            <!-- Credential Selection -->
+                            <div>
+                                <label class="block mb-2 font-medium text-gray-700 flex items-center gap-2">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                    </svg>
+                                    Credentials
+                                </label>
+                                <div class="flex gap-3">
+                                    <select th:field="*{credentialId}"
+                                        class="flex-1 px-4 py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="">-- None (Public Repository) --</option>
+                                        <option th:each="cred : ${credentials}" th:value="${cred.id}"
+                                            th:text="${cred.name + ' (' + #strings.replace(cred.credentialType, '_', ' ') + ')'}">
+                                        </option>
+                                    </select>
+                                    <a th:href="@{/credentials/create}" target="_blank"
+                                        class="px-5 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium flex items-center gap-2">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        New
+                                    </a>
+                                </div>
+                                <p class="text-sm text-gray-500 mt-1">Select credentials for private repository access
+                                </p>
+                            </div>
+
+                            <!-- Simple Job Fields -->
+                            <div id="simpleJobFields" style="display: none;">
+                                <label class="block mb-2 font-medium text-gray-700 flex items-center gap-2">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                    </svg>
+                                    Branch Name
+                                </label>
+                                <input th:field="*{branch}" type="text" placeholder="main"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                                <p class="text-sm text-gray-500 mt-1">The specific branch to build from</p>
+                            </div>
+
+                            <!-- Multi-branch Job Fields -->
+                            <div id="multiBranchJobFields" style="display: none;">
+                                <label class="block mb-2 font-medium text-gray-700 flex items-center gap-2">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                    </svg>
+                                    Branch Pattern
+                                </label>
+                                <input th:field="*{branchPattern}" type="text" placeholder="feature/* or main|develop"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                                <div class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <p class="text-sm text-blue-800">
+                                        <svg class="inline h-4 w-4 mr-1" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Use wildcards (*) for pattern matching or pipe (|) for multiple specific
+                                        branches. Leave empty to build all branches.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Script File Location (Common) -->
+                            <div>
+                                <label class="block mb-2 font-medium text-gray-700 flex items-center gap-2">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    Build Script Location
+                                </label>
+                                <input th:field="*{scriptFileLocation}" type="text"
+                                    placeholder="./build.sh or ci/pipeline.sh"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                                <p class="text-sm text-gray-500 mt-1">Path to your build/deployment script relative to
+                                    repository root</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-3 pt-6 border-t">
+                        <button type="submit"
+                            class="flex-1 bg-blue-600 text-white py-3 px-6 text-lg font-medium rounded-lg hover:bg-blue-700 transition duration-150 flex items-center justify-center gap-2">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7" />
+                            </svg>
+                            Save Changes
+                        </button>
+                        <a th:href="@{'/jobs/' + ${jobId}}"
+                            class="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition duration-150 flex items-center justify-center">
+                            Cancel
+                        </a>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+
+        <script>
+            function toggleJobTypeFields() {
+                const jobType = document.getElementById('jobTypeSelect').value;
+                const jobConfigSection = document.getElementById('jobConfigSection');
+                const simpleJobFields = document.getElementById('simpleJobFields');
+                const multiBranchJobFields = document.getElementById('multiBranchJobFields');
+
+                if (jobType === 'SIMPLE') {
+                    jobConfigSection.style.display = 'block';
+                    simpleJobFields.style.display = 'block';
+                    multiBranchJobFields.style.display = 'none';
+                } else if (jobType === 'MULTIBRANCH') {
+                    jobConfigSection.style.display = 'block';
+                    simpleJobFields.style.display = 'none';
+                    multiBranchJobFields.style.display = 'block';
+                } else {
+                    jobConfigSection.style.display = 'none';
+                    simpleJobFields.style.display = 'none';
+                    multiBranchJobFields.style.display = 'none';
+                }
+            }
+
+            // Initialize on page load
+            document.addEventListener('DOMContentLoaded', function () {
+                toggleJobTypeFields();
+            });
+        </script>
+
+</body>
+
+</html>

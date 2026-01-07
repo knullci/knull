@@ -25,9 +25,10 @@ public class GetBuildsByJobIdQueryHandlerImpl implements GetBuildsByJobIdQueryHa
     @Override
     public List<BuildDto> handle(GetBuildsByJobIdQuery query) {
         logger.info("Fetching builds for job id: {}", query.getJobId());
-        
+
         return buildRepository.findByJobId(query.getJobId())
                 .stream()
+                .sorted((b1, b2) -> Long.compare(b2.getId(), b1.getId())) // Sort by ID descending (newest first)
                 .map(build -> new BuildDto(
                         build.getId(),
                         build.getJobId(),
@@ -43,8 +44,7 @@ public class GetBuildsByJobIdQueryHandlerImpl implements GetBuildsByJobIdQueryHa
                         build.getStartedAt(),
                         build.getCompletedAt(),
                         build.getDuration(),
-                        build.getTriggeredBy()
-                ))
+                        build.getTriggeredBy()))
                 .collect(Collectors.toList());
     }
 }

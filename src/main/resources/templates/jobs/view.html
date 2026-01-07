@@ -51,7 +51,7 @@
             <div class="bg-white shadow-lg rounded-xl overflow-hidden">
 
                 <!-- Basic Information -->
-                <div class="p-8 border-b">
+                <div class="p-8">
                     <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
                         <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -59,17 +59,28 @@
                         </svg>
                         Basic Information
                     </h2>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-500 mb-1">Description</label>
-                            <p class="text-gray-900" th:text="${job.description ?: 'No description provided'}">Build and
-                                test backend service</p>
+                    <div class="grid grid-cols-1 gap-4">
+                        <!-- Description -->
+                        <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
+                            <div
+                                class="flex-shrink-0 w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
+                                <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 6h16M4 12h16M4 18h7" />
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-500">Description</p>
+                                <p class="text-gray-900 mt-1" th:text="${job.description ?: 'No description provided'}">
+                                    Build and test backend service</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Configuration -->
-                <div class="p-8" th:if="${job.gitRepository != null}">
+                <div class="p-8 border-t" th:if="${job.gitRepository != null}">
                     <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
                         <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -79,81 +90,194 @@
                         </svg>
                         Configuration
                     </h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-500 mb-1 flex items-center gap-1">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Git Repository -->
+                        <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-lg col-span-2">
+                            <div
+                                class="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                                 </svg>
-                                Git Repository
-                            </label>
-                            <p class="text-gray-900 font-mono text-sm break-all" th:text="${job.gitRepository}">
-                                https://github.com/user/repo.git</p>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-500">Git Repository</p>
+                                <p class="text-gray-900 font-mono text-sm break-all mt-1"
+                                    th:text="${job.gitRepository}">
+                                    https://github.com/user/repo.git</p>
+                            </div>
                         </div>
 
-                        <div th:if="${job.credentialName != null}">
-                            <label class="block text-sm font-medium text-gray-500 mb-1 flex items-center gap-1">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <!-- Credentials -->
+                        <div th:if="${job.credentialName != null}"
+                            class="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
+                            <div
+                                class="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                                <svg class="h-5 w-5 text-amber-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                                 </svg>
-                                Credentials
-                            </label>
-                            <p class="text-gray-900" th:text="${job.credentialName}">GitHub PAT</p>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-500">Credentials</p>
+                                <p class="text-gray-900 font-medium mt-1" th:text="${job.credentialName}">GitHub PAT</p>
+                            </div>
                         </div>
 
-                        <div th:if="${job.branch != null}">
-                            <label class="block text-sm font-medium text-gray-500 mb-1 flex items-center gap-1">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <!-- Branch -->
+                        <div th:if="${job.branch != null}" class="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
+                            <div
+                                class="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <svg class="h-5 w-5 text-purple-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                                 </svg>
-                                Branch
-                            </label>
-                            <p class="text-gray-900 font-mono text-sm" th:text="${job.branch}">main</p>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-500">Branch</p>
+                                <p class="text-gray-900 font-medium mt-1 font-mono" th:text="${job.branch}">main</p>
+                            </div>
                         </div>
 
-                        <div th:if="${job.branchPattern != null}">
-                            <label class="block text-sm font-medium text-gray-500 mb-1 flex items-center gap-1">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <!-- Branch Pattern -->
+                        <div th:if="${job.branchPattern != null}"
+                            class="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
+                            <div
+                                class="flex-shrink-0 w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                <svg class="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                                 </svg>
-                                Branch Pattern
-                            </label>
-                            <p class="text-gray-900 font-mono text-sm" th:text="${job.branchPattern ?: 'All branches'}">
-                                feature/*</p>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-500">Branch Pattern</p>
+                                <p class="text-gray-900 font-medium mt-1 font-mono"
+                                    th:text="${job.branchPattern ?: 'All branches'}">feature/*</p>
+                            </div>
                         </div>
 
-                        <div th:if="${job.scriptFileLocation != null}">
-                            <label class="block text-sm font-medium text-gray-500 mb-1 flex items-center gap-1">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <!-- Build Script -->
+                        <div th:if="${job.scriptFileLocation != null}"
+                            class="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
+                            <div
+                                class="flex-shrink-0 w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center">
+                                <svg class="h-5 w-5 text-cyan-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
-                                Build Script
-                            </label>
-                            <p class="text-gray-900 font-mono text-sm" th:text="${job.scriptFileLocation}">./build.sh
-                            </p>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-500">Build Script</p>
+                                <p class="text-gray-900 font-medium mt-1 font-mono" th:text="${job.scriptFileLocation}">
+                                    ./build.sh</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Build Options -->
+                <div class="p-8 border-t">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                        <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                        </svg>
+                        Build Options
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Cleanup Workspace -->
+                        <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
+                                th:classappend="${job.cleanupWorkspace} ? 'bg-red-100' : 'bg-gray-200'">
+                                <svg class="h-5 w-5"
+                                    th:classappend="${job.cleanupWorkspace} ? 'text-red-600' : 'text-gray-500'"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-sm font-medium text-gray-900">Cleanup Workspace</p>
+                                    <span th:if="${job.cleanupWorkspace}"
+                                        class="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        Enabled
+                                    </span>
+                                    <span th:unless="${job.cleanupWorkspace}"
+                                        class="px-3 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-600">
+                                        Disabled
+                                    </span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Delete workspace after build completes</p>
+                            </div>
+                        </div>
+
+                        <!-- Checkout Latest Commit -->
+                        <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
+                                th:classappend="${job.checkoutLatestCommit} ? 'bg-teal-100' : 'bg-gray-200'">
+                                <svg class="h-5 w-5"
+                                    th:classappend="${job.checkoutLatestCommit} ? 'text-teal-600' : 'text-gray-500'"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-sm font-medium text-gray-900">Checkout Latest Commit</p>
+                                    <span th:if="${job.checkoutLatestCommit}"
+                                        class="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        Enabled
+                                    </span>
+                                    <span th:unless="${job.checkoutLatestCommit}"
+                                        class="px-3 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-600">
+                                        Disabled
+                                    </span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Always fetch latest commit on build</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <!-- Actions -->
-                <div class="px-8 py-6 bg-gray-50 border-t flex gap-3">
-                    <button
-                        class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center gap-2">
+                <div class="px-8 py-6 bg-gray-50 border-t flex gap-3 items-center">
+                    <!-- Glassmorphism Build Now Button -->
+                    <form th:action="@{'/jobs/' + ${job.id} + '/trigger'}" method="post" style="display: inline;">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit"
+                            class="group relative inline-flex items-center cursor-pointer gap-3 px-6 py-3 rounded-2xl font-semibold transition-all duration-300 ease-out transform hover:scale-105 active:scale-95 overflow-hidden"
+                            style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.3) 100%); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(16, 185, 129, 0.35); box-shadow: 0 8px 32px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);">
+                            <!-- Glass shine effect -->
+                            <span class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
+                                <span
+                                    class="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/25 to-transparent rounded-t-2xl"></span>
+                            </span>
+                            <!-- Hover glow -->
+                            <span
+                                class="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none"
+                                style="background: linear-gradient(135deg, rgba(52, 211, 153, 0.25) 0%, rgba(16, 185, 129, 0.25) 100%); box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);"></span>
+                            <!-- Icon -->
+                            <svg class="h-5 w-5 relative z-10 text-emerald-600 group-hover:text-emerald-500 transition-colors duration-200"
+                                fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                            </svg>
+                            <span
+                                class="relative z-10 text-emerald-700 group-hover:text-emerald-600 transition-colors duration-200">Build
+                                Now</span>
+                        </button>
+                    </form>
+                    <a th:href="@{'/jobs/' + ${job.id} + '/edit'}"
+                        class="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium flex items-center gap-2">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
-                        Build Now
-                    </button>
-                    <a href="#"
-                        class="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium">
                         Edit
                     </a>
                     <form th:action="@{'/jobs/' + ${job.id} + '/delete'}" method="post" style="display: inline;"
@@ -171,9 +295,9 @@
                 </div>
             </div>
 
-            <!-- Build History Section (Placeholder) -->
+            <!-- Build History Section -->
             <div class="bg-white shadow-lg rounded-xl overflow-hidden mt-8">
-                <div class="px-8 py-6 border-b">
+                <div class="px-8 py-6 border-b flex items-center justify-between">
                     <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
                         <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -181,14 +305,137 @@
                         </svg>
                         Build History
                     </h2>
+                    <span class="text-sm text-gray-500" th:text="${#lists.size(builds)} + ' build(s)'">0 build(s)</span>
                 </div>
-                <div class="p-8 text-center text-gray-500">
+
+                <!-- Empty state -->
+                <div th:if="${#lists.isEmpty(builds)}" class="p-8 text-center text-gray-500">
                     <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                     No builds yet. Click "Build Now" to start your first build.
+                </div>
+
+                <!-- Builds table -->
+                <div th:unless="${#lists.isEmpty(builds)}" class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Build</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Commit</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Started</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Duration</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Triggered By</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr th:each="build : ${builds}" class="hover:bg-gray-50 transition-colors">
+                                <!-- Build ID -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <a th:href="@{'/builds/' + ${build.id} + '/pipeline'}"
+                                        class="text-blue-600 hover:text-blue-800 font-medium">
+                                        #<span th:text="${build.id}">1</span>
+                                    </a>
+                                </td>
+
+                                <!-- Status Badge -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span th:switch="${build.status.name()}">
+                                        <span th:case="'SUCCESS'"
+                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                            Success
+                                        </span>
+                                        <span th:case="'FAILED'"
+                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                            Failed
+                                        </span>
+                                        <span th:case="'RUNNING'"
+                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                    stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                </path>
+                                            </svg>
+                                            Running
+                                        </span>
+                                        <span th:case="'PENDING'"
+                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                            Pending
+                                        </span>
+                                        <span th:case="*"
+                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            <span th:text="${build.status}">Unknown</span>
+                                        </span>
+                                    </span>
+                                </td>
+
+                                <!-- Commit -->
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-col">
+                                        <span class="font-mono text-sm text-gray-900"
+                                            th:text="${#strings.abbreviate(build.commitSha, 7)}">abc1234</span>
+                                        <span class="text-xs text-gray-500 truncate max-w-xs"
+                                            th:text="${build.commitMessage}" th:title="${build.commitMessage}">Commit
+                                            message</span>
+                                    </div>
+                                </td>
+
+                                <!-- Started At -->
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <span th:if="${build.startedAt != null}"
+                                        th:text="${#dates.format(build.startedAt, 'MMM dd, HH:mm')}">Jan 01,
+                                        10:00</span>
+                                    <span th:unless="${build.startedAt != null}" class="text-gray-400">-</span>
+                                </td>
+
+                                <!-- Duration -->
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <span th:if="${build.duration != null}">
+                                        <span th:text="${build.duration / 60}">0</span>m
+                                        <span th:text="${build.duration % 60}">0</span>s
+                                    </span>
+                                    <span th:unless="${build.duration != null}" class="text-gray-400">-</span>
+                                </td>
+
+                                <!-- Triggered By -->
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <span th:text="${build.triggeredBy ?: 'Unknown'}">admin</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 

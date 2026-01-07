@@ -60,6 +60,7 @@ public class JobFactory {
 
     public static JobDetailDto toDetailDto(Job job) {
         String gitRepository = null;
+        Long credentialId = null;
         String credentialName = null;
         String branch = null;
         String branchPattern = null;
@@ -72,6 +73,7 @@ public class JobFactory {
                     : ((MultiBranchJobConfig) job.getJobConfig()).getScriptFileLocation();
 
             if (job.getJobConfig().getCredentials() != null) {
+                credentialId = job.getJobConfig().getCredentials().getId();
                 credentialName = job.getJobConfig().getCredentials().getName();
             }
 
@@ -88,10 +90,13 @@ public class JobFactory {
                 job.getDescription(),
                 job.getJobType(),
                 gitRepository,
+                credentialId,
                 credentialName,
                 branch,
                 branchPattern,
                 scriptFileLocation,
+                job.isCleanupWorkspace(),
+                job.isCheckoutLatestCommit(),
                 job.getCreatedAt());
     }
 }

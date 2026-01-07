@@ -261,8 +261,8 @@ SERVER_PORT=${PORT}
 DATA_DIR=${DATA_DIR}
 
 # Workspace base path (shared with Necrosword executor)
-# Using /tmp for permission-less access
-KNULL_WORKSPACE_BASE_PATH=/tmp/knull-workspace
+# Using /var/lib for shared access between Knull and Necrosword
+KNULL_WORKSPACE_BASE_PATH=/var/lib/knull-workspace
 EOF
 fi
 
